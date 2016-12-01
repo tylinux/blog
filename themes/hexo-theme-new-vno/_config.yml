@@ -1,0 +1,30 @@
+menu:
+  #Archives: /archives
+  黄金屋: /favourite
+  时光机: /favourite/time.html
+  #我是: /aboutme
+rss: /atom.xml
+description: 
+social:
+  weibo: 
+  github: https://github.com/tylinux
+  stack_overflow: 
+  facebook: 
+  twitter: https://twitter.com/
+  google_plus: 
+
+page_comment: false
+logo: /favicon.png
+background:
+  cover: /images/background-cover.jpg
+  color: cover-purple
+
+archive_date_format: MMM DD
+fancybox: true
+
+duoshuo_shortname: 
+
+google_analytics: UA-78918255-1
+baidu_tongji: 9cdad07c755fa23f6aced510c6760e87
+favicon: favicon.png
+
