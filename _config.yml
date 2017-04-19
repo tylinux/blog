@@ -3,16 +3,16 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: 膜
-subtitle: 水可载舟，亦可赛艇
+title: 轩猿
+subtitle: 不正经的正经程序员
 description:
-author: Tinny
+author: tylinux
 language: zh-CN
 timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://blog.tylinux.com
+url: http://www.tylinux.com
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
