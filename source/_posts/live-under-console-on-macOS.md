@@ -54,7 +54,7 @@ echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
 
   对于支持从环境变量中读取代理配置的程序，比如wget,git等，可以通过设置``http_proxy``或者``https_proxy``环境变量使代理生效。
 
-  ```shell
+  ``` shell
   export http_proxy=http://ip:port
   wget http://www.baidu.com
   ```
@@ -71,7 +71,7 @@ echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
 
   之后需要对proxychain进行配置，proxychains的配置文件路径是``/usr/local/etc/proxychains.conf``。打开配置文件，注释掉最后一行的默认配置，在之后按照``协议 IP 端口 用户名(可选) 密码(可选)``的格式添加自己的代理服务器配置。示例如下：
 
-  ```shell
+  ``` shell
   # ProxyList format
   #       type  ip  port [user pass]
   #       (values separated by 'tab' or 'blank')
@@ -108,29 +108,27 @@ echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
 
     curl支持通过配置文件设置代理的方法，打开curl配置文件（``~/.curlrc``），在其中写入：
 
-    ```shell
+    ``` shell
     proxy="protocal://ip:port"
     # protocal可以是http、https、socks4/5
     ```
+    
+  * git
 
-    ​
+	git也支持通过将代理信息写入配置文件的方式设置代理：
 
-    * git
+   ``` shell
+   # git支持http、https、socks代理
+   git config --global http.proxy "protocal://ip:port"
+   git config --global https.proxy "protocal://ip:port"
+   ```
 
-      git也支持通过将代理信息写入配置文件的方式设置代理：
+   或者直接打开git配置文件（``~/.gitconfig``），写入如下配置：
+  
+   ``` shell
+   [http]
+	proxy="protocal://ip:port"
+	[https]
+	proxy="protocal://ip:port"
+   ```
 
-      ```shell
-      # git支持http、https、socks代理
-      git config --global http.proxy "protocal://ip:port"
-      git config --global https.proxy "protocal://ip:port"
-      ```
-
-      或者直接打开git配置文件（``~/.gitconfig``），写入如下配置：
-
-      ```shell
-      [http]
-      	proxy="protocal://ip:port"
-      [https]
-      	proxy="protocal://ip:port"
-      ```​
-      
