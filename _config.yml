@@ -3,9 +3,9 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: 轩猿
+title: tylinux
 subtitle: 不正经的正经程序员
-description:
+description: 一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程
 author: tylinux
 language: zh-CN
 timezone: Asia/Shanghai
@@ -75,6 +75,3 @@ theme: hexo-theme-new-vno
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
-deploy:
-  type: git
-  repo: git@github.com:tylinux/tylinux.github.io.git

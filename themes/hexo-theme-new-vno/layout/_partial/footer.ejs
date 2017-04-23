@@ -10,4 +10,8 @@
     <span class="footer__copyright">
         &copy; <%- date(Date.now(), 'YYYY') %> - <a href="/">@tylinux</a> <a href="http://www.miitbeian.gov.cn" target="_blank">京ICP备17013074号</a>
     </span>
+  <% if (page.mathjax){ %>
+        <%- partial('_partial/mathjax') %>
+ <% } %>  
 </footer>
+
