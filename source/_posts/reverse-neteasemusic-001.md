@@ -6,7 +6,7 @@ tags: [reverse,macOS]
 
 ## 获取WebApp内容
 进入``NeteaseMusic.app/Contents``目录观察，早就听闻网易云音乐客户端是个Hybird App，那想必``Resources``目录一定有相应的Web代码资源，ls后观察，在一堆图片文件里有个**resources.pack**文件很显眼：
-![](/images/15004311017406.jpg)
+![](/images/15004438246350.jpg)
 
 查看下文件类型：
 
