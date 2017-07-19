@@ -1,10 +1,9 @@
 ---
-title: [macOS]网易云音乐客户端逆向分析（1）
+title: 网易云音乐客户端逆向分析（1）
 date: 2017-07-19 10:06:04
-tags:
+tags: [reverse,macOS]
 ---
 
-# [macOS]网易云音乐客户端逆向分析（1）
 ## 获取WebApp内容
 进入``NeteaseMusic.app/Contents``目录观察，早就听闻网易云音乐客户端是个Hybird App，那想必``Resources``目录一定有相应的Web代码资源，ls后观察，在一堆图片文件里有个**resources.pack**文件很显眼：
 ![](/images/15004311017406.jpg)
@@ -104,6 +103,4 @@ cat headers/ZipArchive.h
 
 OK，此刻webfiles已经乖乖地躺在硬盘里了~
 ![](/images/15004311896870.jpg)
-
-
 
