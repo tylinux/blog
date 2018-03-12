@@ -6,13 +6,13 @@ tags: [iOS, reverse]
 
 在 iOS 平台上，从 App Store 下载的 App 会被 Apple 使用 `FairPlay` 技术加密，使得程序无法在其他未登录相同 AppleID 的设备上运行，起到 `DRM` 的作用。这样的文件同样也无法使用 IDA Pro 等工具进行分析。不管是出于安全研究还是再次分发的目的，都需要获取未加密的二进制文件，这一过程俗称砸壳。
 
-砸壳工具林林总总，核心原理其实一致：
+</br>砸壳工具林林总总，核心原理其实一致：
 
-iOS/macOS 系统中，可执行文件、动态库等，都使用 `DYLD` 加载执行。在 iOS 系统中使用 DYLD 载入 App 时，会先进行 DRM 检查，检查通过则从 App 的可执行文件中，选择适合当前设备架构的 Mach-O 镜像进行解密，然后载入内存执行。dumpdecrypted 等脱壳工具，就是利用这一原理，从内存中将已解密的镜像 “dump” 出来，再生成新的镜像文件，从而达到解密的效果。其实 FairPlay 算法依托硬件设备足够强大，迄今为止还没有能够脱离 iDevice 解密的工具。
+</br>iOS/macOS 系统中，可执行文件、动态库等，都使用 `DYLD` 加载执行。在 iOS 系统中使用 DYLD 载入 App 时，会先进行 DRM 检查，检查通过则从 App 的可执行文件中，选择适合当前设备架构的 Mach-O 镜像进行解密，然后载入内存执行。dumpdecrypted 等脱壳工具，就是利用这一原理，从内存中将已解密的镜像 “dump” 出来，再生成新的镜像文件，从而达到解密的效果。其实 FairPlay 算法依托硬件设备足够强大，迄今为止还没有能够脱离 iDevice 解密的工具。
 
-[dumpdecrypted.dylib](https://github.com/stefanesser/dumpdecrypted.git) 是由德国安全专家“树人”开发的一款砸壳工具，通过 `DYLD_INSERT_LIBRARIES` 的方式简单地完成砸壳工作。不过我这里分析的是 AloneMonkey 的[修改版本](https://github.com/AloneMonkey/dumpdecrypted.git)，他在原有代码的基础上，把部分 `print` 改成了 `NSLog`，生成的 `.decrypted` 文件放到了 `Documents` 目录，最主要的是，替换了 `_exit(1)` 为 `return`，这样，就不止会处理可执行程序的镜像文件，随后加载的 fremework、Dylib 也会被一同 `Decrypt`。
+</br>[dumpdecrypted.dylib](https://github.com/stefanesser/dumpdecrypted.git) 是由德国安全专家“树人”开发的一款砸壳工具，通过 `DYLD_INSERT_LIBRARIES` 的方式简单地完成砸壳工作。不过我这里分析的是 AloneMonkey 的[修改版本](https://github.com/AloneMonkey/dumpdecrypted.git)，他在原有代码的基础上，把部分 `print` 改成了 `NSLog`，生成的 `.decrypted` 文件放到了 `Documents` 目录，最主要的是，替换了 `_exit(1)` 为 `return`，这样，就不止会处理可执行程序的镜像文件，随后加载的 fremework、Dylib 也会被一同 `Decrypt`。
 
-dumpdecrypted源码十分简单，带注释一共只有230行，三个 C 函数。下边就来分析一下它的实现原理。
+</br>dumpdecrypted源码十分简单，带注释一共只有230行，三个 C 函数。下边就来分析一下它的实现原理。
 
 ## 入口
 
