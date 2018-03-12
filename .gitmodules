@@ -1,0 +1,3 @@
+[submodule "themes/vno"]
+	path = themes/vno
+	url = git@github.com:tylinux/hexo-theme-new-vno.git

@@ -71,7 +71,7 @@ path: atom.xml
 limit: 20
 
 ## Themes: https://hexo.io/themes/
-theme: hexo-theme-new-vno
+theme: vno
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
