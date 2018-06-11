@@ -36,7 +36,7 @@ alias ls="ls --color=tty"
 ```shell
 # 详见https://lug.ustc.edu.cn/wiki/mirrors/help/brew.git
 # 替换homebrew默认源
-cd /usr/local
+cd /usr/local/Homebrew
 git remote set-url origin git://mirrors.ustc.edu.cn/brew.git
 
 # 详见https://lug.ustc.edu.cn/wiki/mirrors/help/homebrew-bottles
