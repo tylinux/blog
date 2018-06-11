@@ -1,7 +1,7 @@
 ---
-title: [译] 在 iOS 11.3 之后的系统中 remount RootFS 为可读写
+title: (译) 在 iOS 11.3 之后的系统中 remount RootFS 为可读写
 date: 2018-06-12 02:30:48
-tags: [iOS, Jailbreak]
+tags: [iOS,Jailbreak]
 ---
 
 > 原文链接：https://media.weibo.cn/article?id=2309404245794218721506
