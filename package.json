@@ -2,8 +2,12 @@
   "name": "hexo-site",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "c": "hexo new",
+    "s": "hexo g && hexo s"
+  },
   "hexo": {
-    "version": "3.3.7"
+    "version": "3.8.0"
   },
   "dependencies": {
     "hexo": "^3.3.1",
