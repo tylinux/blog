@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "c": "hexo new",
+    "g": "hexo g",
     "s": "hexo g && hexo s"
   },
   "hexo": {
