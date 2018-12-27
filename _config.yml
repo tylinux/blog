@@ -83,4 +83,3 @@ gitment:
   repo: Blog
   client_id: 05c154c67d7f889675c8
   client_secret: ccc6b913b23acfb0a3c04a36420db708d4a63ef7
-  lazy: false
