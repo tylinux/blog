@@ -25,16 +25,21 @@ touch: cannot touch '/var/jenkins_home/copy_reference_file.log': Permission deni
 Can not write to /var/jenkins_home/copy_reference_file.log. Wrong volume permissions?
 ```
 
-错误信息很明显，我把 `/var/jenkins_home` 映射到了本地目录，但是容器里对这个目录没有读写权限，所以就GG了。
-
-参考 [[1]](https://github.com/jenkinsci/docker/blob/master/Dockerfile) 中可以知道，Docker 中运行的用户是 jenkins:jenkins, GID、UID 均为 1000，而这个用户没有 `DockerExt` 这个目录的读写权限，所以将 `DockerExt1 的 owner 修改为1000:1000 应该就可以解决问题。然而，我在群晖中并没有找到修改文件目录权限的地方，继续搜索。
-
-在某个 Github issue 中有人提到，可以将 docker 中运行的用户指定为 root，即 UID 0 来测试是否是文件目录权限问题。那么我能不能这个样子搞一下，先让这个镜像跑起来呢？事实上，不行，群晖的 Docker 图形化界面并没有提供指定用户的能力。。有同志提出，可以先创建一个镜像，然后导出成 JSON 文件，修改后再导入，但是在导出的 JSON 文件中，我也没有找到可以修改用户的地方。GG。
+参考 [[1]](https://github.com/jenkinsci/docker/blob/master/Dockerfile) 中可以知道，Docker 中运行的用户是 jenkins:jenkins, GID、UID 均为 1000，而这个用户没有 `DockerExt` 这个目录的读写权限，导致程序异常终止。解决方案如下：
 
 ## 解决方案
+### 方案一：
+本方案需要 SSH 到 Synology 系统中，通过命令行的方式创建 Docker Container
 
-经过一番探索，我这样搞成功了，自我感觉还算优雅（尝试通过 SSH 登录后修改 `DockerExt` 的 owner 为 1000:1000，然而没有暖用）：
+#### 优点：
+不需要修改文件目录属性
 
+#### 缺点：
+
+1. 需要 SSH 登录，输入命令创建 Docker Container
+2. 在容器中执行 `ssh-keygen` 或者 `git clone` 命令时会报 `No user exists for uid xxxx` 错误
+
+#### 操作步骤
 1. 打开群晖系统的 SSH 登录功能：`Control Panel` -> `Terminal & SNMP` -> `Enable SSH Service`
     
 2. SSH 登录后执行 `cat /etc/passwd`，找到当前用户的 UID
@@ -52,5 +57,72 @@ Can not write to /var/jenkins_home/copy_reference_file.log. Wrong volume permiss
     
 4. 返回群晖的图形化 Docker 界面重启该实例
 
+### 方案二：
+
+修改本地文件目录属性为 `777`（在群晖系统中， 修改 owner 为 1000:1000 的方式无效）
+
+#### 执行步骤：
+1. 同方案一一致，打开 SSH 并登录
+2. 执行 `sudo chown -R 777 /volume4/DockerExt/JenkinsHome/` 修改目录权限
+3. 在图形管理界面中创建 Container
+
+
+### 方案三
+创建自己的 Dockerfile
+
+#### 操作步骤：
+创建 `Dockerfile`
+
+```Dockerfile
+FROM jenkins:alpine
+USER root
+ENV GOSU_VERSION 1.9
+RUN set -x \
+    && apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
+    && dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+    && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
+    && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+    && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+    && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
+    && chmod +x /usr/local/bin/gosu \
+    && gosu nobody true
+
+#switch to jenkins to customize
+USER jenkins
+COPY groovies/executors.groovy /usr/share/jenkins/ref/init.groovy.d/executors.groovy
+COPY plugins.txt /usr/share/jenkins/ref/
+RUN /usr/local/bin/plugins.sh /usr/share/jenkins/ref/plugins.txt
+
+#switch to root to run
+USER root
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod u+x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["jenkins", "/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
+```
+
+在同目录下创建 `entrypoint.sh` 文件
+
+```bash
+#!/bin/bash
+set -e
+if [ "$1" = 'jenkins' ]; then
+    chown -R jenkins:jenkins "$JENKINS_HOME"
+    exec gosu "$@"
+fi
+exec "$@"
+```
+
+保存后执行：
+
+```bash
+docker build -t jenkins:alpine -t
+```
+
+原理是在启动 Docker 容器的时候，自动修改 `$JENKINS_HOME` 目录的 owner。
+
 ## 参考
 [1]. [https://github.com/jenkinsci/docker/blob/master/Dockerfile](https://github.com/jenkinsci/docker/blob/master/Dockerfile)
+[2]. [https://github.com/jenkinsci/docker/issues/177](https://github.com/jenkinsci/docker/issues/177)
