@@ -71,36 +71,38 @@ Can not write to /var/jenkins_home/copy_reference_file.log. Wrong volume permiss
 创建自己的 Dockerfile
 
 #### 操作步骤：
-创建 `Dockerfile`
+创建 `Dockerfile`，内容如下（基于alpine tag，latest可参考 [[2]](https://github.com/jenkinsci/docker/issues/177)）
 
 ```Dockerfile
-FROM jenkins:alpine
+FROM jenkins/jenkins:alpine
 USER root
-ENV GOSU_VERSION 1.9
-RUN set -x \
-    && apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
-    && dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
-    && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
-    && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc" \
-    && export GNUPGHOME="$(mktemp -d)" \
-    && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
-    && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
-    && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
-    && chmod +x /usr/local/bin/gosu \
-    && gosu nobody true
-
-#switch to jenkins to customize
-USER jenkins
-COPY groovies/executors.groovy /usr/share/jenkins/ref/init.groovy.d/executors.groovy
-COPY plugins.txt /usr/share/jenkins/ref/
-RUN /usr/local/bin/plugins.sh /usr/share/jenkins/ref/plugins.txt
-
-#switch to root to run
-USER root
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod u+x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["jenkins", "/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
+ENV GOSU_VERSION 1.11
+RUN set -eux; \
+    \
+    apk add --no-cache --virtual .gosu-deps \
+    dpkg \
+    gnupg \
+    ; \
+    \
+    dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+    wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+    wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+    \
+    # verify the signature
+    export GNUPGHOME="$(mktemp -d)"; \
+    # for flaky keyservers, consider https://github.com/tianon/pgp-happy-eyeballs, ala https://github.com/docker-library/php/pull/666
+    gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+    gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+    command -v gpgconf && gpgconf --kill all || :; \
+    rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+    \
+    # clean up fetch dependencies
+    apk del --no-network .gosu-deps; \
+    \
+    chmod +x /usr/local/bin/gosu; \
+    # verify that the binary works
+    gosu --version; \
+    gosu nobody true
 ```
 
 在同目录下创建 `entrypoint.sh` 文件
