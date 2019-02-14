@@ -1,5 +1,5 @@
 ---
-title: pwnable.tw start writeup
+title: pwnable.tw 0x0 start writeup
 date: 2019-02-13 01:42:41
 tags: [pwn,overflow]
 ---
