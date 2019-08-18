@@ -2,9 +2,12 @@
 title: pwnable.tw 0x1 orw writeup
 date: 2019-02-13 20:56:55
 tags: [pwn]
+categories: ["二进制安全"]
 ---
 
 > 地址：[https://pwnable.tw/challenge/#2](https://pwnable.tw/challenge/#2)
+
+<!--more-->
 
 ## 分析
 

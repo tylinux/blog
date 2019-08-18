@@ -1,3 +1,6 @@
 [submodule "themes/vno"]
 	path = themes/vno
 	url = https://git.xnure.com/tylinux/hexo-theme-new-vno.git
+[submodule "themes/maupassant"]
+	path = themes/maupassant
+	url = https://github.com/tylinux/maupassant-hugo.git

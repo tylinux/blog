@@ -2,9 +2,12 @@
 title: 使用 Linux deploy 在 Android 设备上运行 Linux 发行版
 date: 2018-01-22 18:14:48
 tags: [linux, android, arm]
+categories: ["系统应用"]
 ---
 
 在学习 ARM 汇编的时候，需要在本地搭建 arm 环境，当时所用的方法是使用 QEMU 模拟树莓派。然而由于 QEMU 对树莓派支持有限，性能堪忧。昨天翻出 2013 时候淘的一部 LG GPro，突然想到可以在 Android 设备上跑个 Linux 发行版来解决这个问题。
+
+<!--more-->
 
 （手机长这样：
 ![-w540](https://i.loli.net/2018/01/22/5a65a5eecc4f8.jpg)

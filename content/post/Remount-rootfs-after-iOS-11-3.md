@@ -2,12 +2,15 @@
 title: (译) 在 iOS 11.3 之后的系统中 remount RootFS 为可读写
 date: 2018-06-12 02:30:48
 tags: [iOS,Jailbreak]
+categories: ["逆向研究"]
 ---
 
 > 原文链接：https://media.weibo.cn/article?id=2309404245794218721506
 > 作者：Xiaolong Bai and Min (Spark) Zheng @ Alibaba Security Lab
 > 译者：tylinux
 > 博客地址: [https://www.tylinux.com](https://www.tylinux.com)
+
+<!--more-->
 
 ## 0x0 简介
 对于越狱来讲，一个可读写的 Root 分区是必须的，因为越狱之后需要安装一些非沙盒的应用以及修改部分系统设置。但是，未越狱的 iOS 系统中， Root 文件系统默认是只读的，因此，现代越狱中的很重要的一步就是将 Root 文件系统重新挂载为可读写的。显然，苹果不会让你这么轻易地做到。

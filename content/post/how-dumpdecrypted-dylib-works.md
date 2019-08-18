@@ -2,9 +2,12 @@
 title: dumpdecrypted.dylib 原理分析
 date: 2018-03-12 20:56:08
 tags: [iOS, reverse]
+categories: ["逆向研究"]
 ---
 
 在 iOS 平台上，从 App Store 下载的 App 会被 Apple 使用 `FairPlay` 技术加密，使得程序无法在其他未登录相同 AppleID 的设备上运行，起到 `DRM` 的作用。这样的文件同样也无法使用 IDA Pro 等工具进行分析。不管是出于安全研究还是再次分发的目的，都需要获取未加密的二进制文件，这一过程俗称砸壳。
+
+<!--more-->
 
 </br>砸壳工具林林总总，核心原理其实一致：
 

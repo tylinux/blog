@@ -2,9 +2,12 @@
 title: "React Native 疑难 Crash 一例"
 date: 2019-08-13 15:23:40
 tags: [iOS]
+categories: ["iOS开发"]
 ---
 
 我司客户端中使用了 React Native 0.54.3 版本，自接入开始，就出现了一类很诡异的 Crash，崩溃信息如下：
+
+<!--more-->
 
 ```
 Incident Identifier: 916505BF-F7E5-451E-9753-610B112D52CD

@@ -2,9 +2,12 @@
 title: 在macOS下高效使用命令行
 date: 2016-08-31 00:46:08
 tags: [macOS,Console]
+categories: ["系统应用"]
 ---
 
 相对于Windows和Linux，macOS最吸引人的地方在于精致的图形界面与强大的命令行的完美结合。熟悉macOS历史的同学应该知道，macOS的内核衍生自FreeBSD，属于正统Unix。因此，macOS下的各种终端命令的参数格式都是BSD式，对于习惯了Linux参数格式的我来讲有些许不适用，好在有Homebrew的加持，可以很方便的改回到Linux方式：
+
+<!--more-->
 
 ## 使用Linux式命令
 
