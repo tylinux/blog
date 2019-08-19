@@ -2,9 +2,12 @@
 title: 搭建私有Cydia源
 date: 2017-08-22 13:40:36
 tags: [reverse,iOS,Cydia]
+categories: ["逆向研究"]
 ---
 
 在通过 ``TheOS`` 完成 Tweak 的开发后，我们通常会执行 ``make package install`` 命令来将 Tweak 安装到越狱设备上。但如果需要将 Tweak 部署到大量设备上，安装和更新都是一个问题。这个时候，我们可以通过部署私有的 Cydia 源来完成 Tweak 的安装和更新。
+
+<!--more-->
 
 ## 依赖
 为了一次性把我们自己的 Tweak 以及依赖的其他库安装上，应该在我们的 Tweak 中写明依赖的库。具体修改的是 Tweak 工程中的 control 文件。control 文件内容如下：

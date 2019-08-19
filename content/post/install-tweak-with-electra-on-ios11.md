@@ -2,9 +2,12 @@
 title: iOS 11.0 - 11.1.2 越狱插件安装指南
 date: 2018-02-07 23:45:49
 tags: [iOS, tweak]
+categories: ["逆向研究"]
 ---
 
 > Electra 1.0 已经释出，包含 Cydia，下边的内容可能不适用于新版本的 Electra，仅供理解 Cydia 原理用。
+
+<!--more-->
 
 <br/>
 **以下内容仅供参考**

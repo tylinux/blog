@@ -2,7 +2,10 @@
 title: 使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1
 date: 2018-07-12 23:28:03
 tags: [iOS,SHSH,Jailbreak]
+categories: ["逆向研究"]
 ---
+
+<!--more-->
 
 ## 物料
 1. 使用 iOS 11.1.2 系统的 iPad Air2

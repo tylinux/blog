@@ -2,9 +2,12 @@
 title: 在群晖中使用 Docker 安装 Jenkins
 date: 2018-12-30 18:29:07
 tags: [docker,jenkins,synology]
+categories: ["系统应用"]
 ---
 
 之前家里的 Jenkins 是跑在媳妇儿的老戴尔笔记本上，平台跑一些 DDNS、Blog 自动更新以及 Github Mirros 的任务。有种杀机用牛刀的感觉，为了响应国家节能减排的号召 (:D，准备把 Jenkins 迁移到家里的黑群晖上。但在折腾的过程中碰到一些问题，特此记录。
+
+<!--more-->
 
 ## 下载镜像
 

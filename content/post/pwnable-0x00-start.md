@@ -2,9 +2,12 @@
 title: pwnable.tw 0x0 start writeup
 date: 2019-02-13 01:42:41
 tags: [pwn,overflow]
+categories: ["二进制安全"]
 ---
 
 > 地址：[https://pwnable.tw/challenge/#1](https://pwnable.tw/challenge/#1)
+
+<!--more-->
 
 ## 分析
 
