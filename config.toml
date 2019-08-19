@@ -33,3 +33,8 @@ disablePathToLower = true
     name = "知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议"
     link = "https://creativecommons.org/licenses/by-nc-nd/4.0/"
 
+[params.utteranc]
+    enable = true
+    repo = "tylinux/BlogComments"
+    issueTerm = "pathname"  #表示你选择以那种方式让github issue的评论和你的文章关联。
+    theme = "github-light" # 样式主题，有github-light和github-dark两种
