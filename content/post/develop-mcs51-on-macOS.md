@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
 | | SSDC | keil |
 | --- | --- | --- |
 | 头文件 | 8051.h/8052.h | reg51.h/reg52.h |
-| IO口 | P1_0 | P1\^0 |
-| IO口定义 | #define LED P1_0 | sbit LED = P1\^0 |
+| IO口 | P1_0 | P1^0 |
+| IO口定义 | #define LED P1_0 | sbit LED = P1^0 |
 | 中断函数 | void INT0_ISR() __interrupt 0 | void INT0_ISR() interrupt 0 |
 
 ![-w675](https://i.loli.net/2019/09/27/DTlzRcEMbtd4gaO.jpg)
