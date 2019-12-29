@@ -57,7 +57,7 @@ sudo ./XcodeLegacy.sh -osx109 install
 ### 编译
 按照编译指南，执行 `./configure --disable-hardening` 生成编译脚本，报错如下：
 
-```
+```text
 ...
 Checking for Darwin version:   failed to determine Darwin version. (uname -r: 19.0.0)
 Check /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for details
@@ -87,7 +87,7 @@ Check /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log f
 顺便添加了 `--std=c++11`，打开 C++ 11 的支持。
 再次执行 `./configure --disable-hardening`，报错如下：
 
-```
+```text
 ...
 Checking for Darwin version: Please specify --with-xcode-dir option.
 Check /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for details
@@ -95,7 +95,7 @@ Check /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for d
 
 要求使用 `--with-xcode-dir` 传入 `Xcode` 的安装路径，OK，改用新的命令 `./configure --disable-hardening --with-xcode-dir=/Applications/Xcode.app`，报错如下：
 
-```
+```text
 ...
 Checking for ssl:
   libcrypto not found at  -lssl -lcrypto or openssl headers not found
@@ -105,7 +105,7 @@ Check /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for d
 
 找不到 `openssl`，执行 `./configure --help`，可以看到其支持通过 `--with-openssl-dir=` 指定 `openssl` 目录，OK，命令改成：`./configure --disable-hardening --with-xcode-dir=/Applications/Xcode.app --with-openssl-dir=/usr/local/opt/openssl@1.1/`，这是 Homebrew 安装的 openssl 的路径，报错如下：
 
-```
+```text
 ...
 Checking for Qt5:
   ** Qt5 framework not found (can be disabled using --disable-qt)!
@@ -114,7 +114,7 @@ Check /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for d
 
 找到 openssl 了，但是 qt5 没有找到，同样的，我们通过 `--with-qt-dir` 指定一下，命令：`./configure --disable-hardening --with-xcode-dir=/Applications/Xcode.app --with-openssl-dir=/usr/local/opt/openssl@1.1/ --with-qt-dir=/usr/local/Cellar/qt/5.14.0`，配置成功，日志如下：
 
-```
+```text
 Checking for environment: Determined build machine: darwin.amd64, target machine: darwin.amd64, OK.
 Checking for kBuild: found, OK.
 Checking for Darwin version: found version 10.15 (SDK: /Applications/Xcode.app/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk), OK.
@@ -147,7 +147,7 @@ Enjoy!
 按照提示，执行 `source /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/env.sh` 配置环境变量，然后执行 `kmk` 开始编译。
 报错如下：
 
-```
+```text
 ...
 The failing command:
 @yasm -f macho64 -DASM_FORMAT_MACHO -D__YASM__ -Worphan-labels -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Runtime/include/ -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/libs/liblzf-3.4/ -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/libs/libxml2-2.9.4/include/ -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/include/ -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/ -DVBOX -DVBOX_OSE -DVBOX_WITH_64_BITS_GUESTS -DRT_OS_DARWIN -D__DARWIN__ -DRT_ARCH_AMD64 -D__AMD64__ -D_REENTRANT -DLIBXML_STATIC -DLIBXML_STATIC_FOR_DLL -DIN_RING3 -DLOG_DISABLED -DIN_BLD_PROG -DIN_RT_R3 -DIN_ADV_BLD_PROG -DIN_RT_R3 -DLDR_WITH_NATIVE -DLDR_WITH_ELF32 -DLDR_WITH_LX -DLDR_WITH_MACHO -DLDR_WITH_PE -DRT_WITH_VBOX -DRT_NO_GIP -DRT_WITHOUT_NOCRT_WRAPPERS -DNOFILEID -DRT_WITH_ICONV_CACHE -DIPRT_WITHOUT_LDR_VERIFY -DRT_NO_GIP -DMAC_OS_X_VERSION_MIN_REQUIRED=1090 -DMAC_OS_X_VERSION_MAX_ALLOWED=1090 -l /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/obj/RuntimeBldProg/common/misc/zero.lst -o /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/obj/RuntimeBldProg/common/misc/zero.o /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Runtime/common/misc/zero.asm
@@ -160,7 +160,7 @@ kmk: *** Waiting for unfinished jobs....
 
 `yasm: Bad CPU type in executable`，看起来 `yasm` 不是一个正确的 `Mach-O` 可执行文件。执行 `file tools/darwin.amd64/bin/yasm`，结果：
 
-```
+```text
 tools/darwin.amd64/bin/yasm: Mach-O executable i386
 ```
 
@@ -168,7 +168,7 @@ tools/darwin.amd64/bin/yasm: Mach-O executable i386
 
 再次报错：
 
-```
+```text
 ...
 kBuild: iasl VBoxDD - /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Devices/PC/vbox.dsl
 kmk: execvp: /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/tools/darwin.amd64/bin/iasl: Bad CPU type in executable
@@ -181,7 +181,7 @@ kmk: *** Waiting for unfinished jobs...
 
 报错信息：
 
-```
+```text
 ...
 kBuild: Generating tstVMStructSize - /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/obj/VMM/tstAsmStructsHC.h
 In file included from /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Debugger/testcase/tstVBoxDbg.cpp:22:
@@ -218,7 +218,7 @@ QT5 提供的头文件，需要编译器支持 C++ 11 才能使用，编辑 `too
 
 `kmk` 继续编译，错误如下：
 
-```
+```text
 /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Devices/USB/darwin/USBProxyDevice-darwin.cpp:1126:34: error: comparison between pointer and integer ('CFMutableDictionaryRef' (aka '__CFDictionary *') and 'io_object_t'
       (aka 'unsigned int'))
     AssertReturn(RefMatchingDict != IO_OBJECT_NULL, VERR_OPEN_FAILED);
@@ -247,7 +247,7 @@ QT5 提供的头文件，需要编译器支持 C++ 11 才能使用，编辑 `too
 ## 运行
 编译结果在 `out/darwin.amd64/release/dist` 目录下，`VirtualBox.app` 是 App，`*.kext` 则是 VirtualBox 需要的内核扩展。执行 `loadall.sh` 加载内核扩展，报错如下：
 
-```
+```text
 ...
 Code Signing Failure: not code signed
 Disabling KextAudit: SIP is off
@@ -261,17 +261,18 @@ Disabling KextAudit: SIP is off
 嗯，我们的编译生成的 kext 没有代码签名，被拒绝加载了。
 
 解决方案：
+
 1. 按照 [https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html) 所述，生成自签证书。
 2. 在 VirtualBox 源码目录下新建 `LocalConfig.kmk`，文件内容：
     
-    ```kmk
+    ```text
     VBOX_SIGNING_MODE = test
     VBOX_CERTIFICATE_SUBJECT_NAME = My Code Signing Cert
     ```
     其中，`VBOX_CERTIFICATE_SUBJECT_NAME` 就是你在生成自签证书是起的名字，重新 `kmk`，编译成功。
 
 ## 参考链接
-[Mac OS X build instructions](https://www.virtualbox.org/wiki/Mac%20OS%20X%20build%20instructions)
-[My experience building VirtualBox from Subversion on Mojave](https://forums.virtualbox.org/viewtopic.php?f=8&t=92989)
-[xcodelegacy](https://github.com/devernay/xcodelegacy)
-[jabba](https://github.com/shyiko/jabba)
+1. [Mac OS X build instructions](https://www.virtualbox.org/wiki/Mac%20OS%20X%20build%20instructions)
+2. [My experience building VirtualBox from Subversion on Mojave](https://forums.virtualbox.org/viewtopic.php?f=8&t=92989)
+3. [xcodelegacy](https://github.com/devernay/xcodelegacy)
+4. [jabba](https://github.com/shyiko/jabba)
