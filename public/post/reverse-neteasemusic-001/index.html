@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="generator" content="Hugo 0.64.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>网易云音乐客户端逆向分析（1） | 不正经的正经程序猿</title>
+    <meta property="og:title" content="网易云音乐客户端逆向分析（1） - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content="2017-07-19T10:06:04&#43;08:00">
+        
+        
+    <meta property="article:modified_time" content="2017-07-19T10:06:04&#43;08:00">
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="网易云音乐客户端逆向分析（1）">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/reverse-neteasemusic-001/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="/css/normalize.css">
+    
+        <link rel="stylesheet" href="/css/prism.css">
+    
+    <link rel="stylesheet" href="/css/style.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
+
+    
+
+
+    
+    
+</head>
+
+<body>
+<header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+<div id="body">
+    <div class="container">
+        <div class="col-group">
+
+            <div class="col-8" id="main">
+                <div class="res-cons">
+                    <article class="post">
+                        <header>
+                            <h1 class="post-title">网易云音乐客户端逆向分析（1）</h1>
+                        </header>
+                        <date class="post-meta meta-date">
+                            2017年7月19日
+                        </date>
+                        
+                        <div class="post-meta">
+                            <span>|</span>
+                            
+                                <span class="meta-category"><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6">逆向研究</a></span>
+                            
+                        </div>
+                        
+                        
+                        <div class="post-meta">
+                            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span> 阅读</span></span>
+                        </div>
+                        
+                        
+                        <div class="post-content">
+                            <h2 id="获取webapp内容">获取WebApp内容</h2>
+<p>进入<code>NeteaseMusic.app/Contents</code>目录观察，早就听闻网易云音乐客户端是个Hybird App，那想必<code>Resources</code>目录一定有相应的Web代码资源，ls后观察，在一堆图片文件里有个<strong>resources.pack</strong>文件很显眼：</p>
+<p><img src="/images/15004438246350.jpg" alt=""></p>
+<p>查看下文件类型：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">file resources.pack
+</code></pre></div><p>zip压缩文件！尝试解压：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">unzip resources.pack
+</code></pre></div><p>需要输入密码😭。。。
+<img src="/images/15004311155914.jpg" alt=""></p>
+<p>启动Hopper，打开网易云的可执行文件，稍等分析完毕之后，尝试搜索<strong>unzip</strong>关键字，毕竟他得先解压嘛</p>
+<p><img src="/images/15004311249604.jpg" alt=""></p>
+<p>发现有个YYYWebfilesManager的类很可疑，尤其是看到它的伪码的时候：</p>
+<p><img src="/images/15004311460633.jpg" alt=""></p>
+<p>启动cycript，挂到运行着的NeteaseMusic进程上，直接调一下这几个方法：</p>
+<p><img src="/images/15004311612498.jpg" alt=""></p>
+<p>很High，现在文件已经解压出来了，只需要把它们从内存保存到硬盘既可。class-dump一下，看一眼<code>ZipArchive</code>的Api：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">class-dump NeteaseMusic -H -o headers
+
+cat headers/ZipArchive.h
+</code></pre></div><p>内容如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#75715e">//
+</span><span style="color:#75715e"></span><span style="color:#75715e">//     Generated by class-dump 3.5 (64 bit).
+</span><span style="color:#75715e"></span><span style="color:#75715e">//
+</span><span style="color:#75715e"></span><span style="color:#75715e">//     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2013 by Steve Nygard.
+</span><span style="color:#75715e"></span><span style="color:#75715e">//
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#</span><span style="color:#75715e">import &#34;NSObject.h&#34;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">@class</span> <span style="color:#a6e22e">NSArray</span>, <span style="color:#a6e22e">NSFileManager</span>, <span style="color:#a6e22e">NSString</span>;
+
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">ZipArchive</span> : <span style="color:#a6e22e">NSObject</span>
+{
+    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>_zipFile;
+    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>_unzFile;
+    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> _numFiles;
+    NSString <span style="color:#f92672">*</span>_password;
+    <span style="color:#66d9ef">id</span> _delegate;
+    CDUnknownBlockType _progressBlock;
+    NSArray <span style="color:#f92672">*</span>_unzippedFiles;
+    NSFileManager <span style="color:#f92672">*</span>_fileManager;
+    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> _stringEncoding;
+}
+
+<span style="color:#66d9ef">@property</span>(<span style="color:#66d9ef">nonatomic</span>) <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> stringEncoding; <span style="color:#75715e">// @synthesize stringEncoding=_stringEncoding;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span>(<span style="color:#66d9ef">copy</span>, <span style="color:#66d9ef">nonatomic</span>) CDUnknownBlockType progressBlock; <span style="color:#75715e">// @synthesize progressBlock=_progressBlock;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span>(<span style="color:#66d9ef">readonly</span>, <span style="color:#66d9ef">nonatomic</span>) NSArray <span style="color:#f92672">*</span>unzippedFiles; <span style="color:#75715e">// @synthesize unzippedFiles=_unzippedFiles;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span>(<span style="color:#66d9ef">copy</span>, <span style="color:#66d9ef">nonatomic</span>) NSString <span style="color:#f92672">*</span>password; <span style="color:#75715e">// @synthesize password=_password;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span>(<span style="color:#66d9ef">readonly</span>, <span style="color:#66d9ef">nonatomic</span>) <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> numFiles; <span style="color:#75715e">// @synthesize numFiles=_numFiles;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span>(<span style="color:#66d9ef">retain</span>, <span style="color:#66d9ef">nonatomic</span>) <span style="color:#66d9ef">id</span> <span style="color:#f92672">&lt;</span>ZipArchiveDelegate<span style="color:#f92672">&gt;</span> delegate; <span style="color:#75715e">// @synthesize delegate=_delegate;
+</span><span style="color:#75715e"></span>- (<span style="color:#66d9ef">id</span>)<span style="color:#a6e22e">Date1980</span>;
+- (<span style="color:#66d9ef">BOOL</span>)<span style="color:#a6e22e">OverWrite:</span>(<span style="color:#66d9ef">id</span>)arg1;
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">OutputErrorMessage:</span>(<span style="color:#66d9ef">id</span>)arg1;
+- (<span style="color:#66d9ef">id</span>)<span style="color:#a6e22e">getZipFileContents</span>;
+- (<span style="color:#66d9ef">BOOL</span>)<span style="color:#a6e22e">UnzipCloseFile</span>;
+- (<span style="color:#66d9ef">id</span>)<span style="color:#a6e22e">UnzipFileToMemory</span>;
+- (<span style="color:#66d9ef">BOOL</span>)<span style="color:#a6e22e">UnzipFileTo:</span>(<span style="color:#66d9ef">id</span>)arg1 <span style="color:#a6e22e">overWrite:</span>(<span style="color:#66d9ef">BOOL</span>)arg2;
+- (<span style="color:#66d9ef">BOOL</span>)<span style="color:#a6e22e">UnzipOpenFile:</span>(<span style="color:#66d9ef">id</span>)arg1 <span style="color:#a6e22e">Password:</span>(<span style="color:#66d9ef">id</span>)arg2;
+- (<span style="color:#66d9ef">BOOL</span>)<span style="color:#a6e22e">UnzipOpenFile:</span>(<span style="color:#66d9ef">id</span>)arg1;
+- (<span style="color:#66d9ef">BOOL</span>)<span style="color:#a6e22e">CloseZipFile2</span>;
+- (<span style="color:#66d9ef">BOOL</span>)<span style="color:#a6e22e">addFileToZip:</span>(<span style="color:#66d9ef">id</span>)arg1 <span style="color:#a6e22e">newname:</span>(<span style="color:#66d9ef">id</span>)arg2;
+- (<span style="color:#66d9ef">BOOL</span>)<span style="color:#a6e22e">CreateZipFile2:</span>(<span style="color:#66d9ef">id</span>)arg1 <span style="color:#a6e22e">Password:</span>(<span style="color:#66d9ef">id</span>)arg2;
+- (<span style="color:#66d9ef">BOOL</span>)<span style="color:#a6e22e">CreateZipFile2:</span>(<span style="color:#66d9ef">id</span>)arg1;
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">dealloc</span>;
+- (<span style="color:#66d9ef">id</span>)<span style="color:#a6e22e">initWithFileManager:</span>(<span style="color:#66d9ef">id</span>)arg1;
+- (<span style="color:#66d9ef">id</span>)<span style="color:#a6e22e">init</span>;
+
+<span style="color:#66d9ef">@end</span>
+</code></pre></div><p>注意到<code>- (BOOL)UnzipFileTo:(id)arg1 overWrite:(BOOL)arg2;</code>这个Api，直接在cycript环境中输入：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc">[manager UnzipFileTo:<span style="color:#e6db74">@&#34;</span><span style="color:#e6db74">/Users/kevin/Developer/Reverse/NeteaseMusic</span><span style="color:#e6db74">&#34;</span> overWrite: YES]
+</code></pre></div><p>OK，此刻webfiles已经乖乖地躺在硬盘里了~
+<img src="/images/15004311896870.jpg" alt=""></p>
+                        </div>
+
+                        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/reverse-neteasemusic-001/">https://www.tylinux.com/post/reverse-neteasemusic-001/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+                        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/live-under-console-on-macOS/">在macOS下高效使用命令行</a></li>
+        
+        <li><a href="/about/"></a></li>
+        
+        <li><a href="/archives/">归档</a></li>
+        
+    </ul>
+</div>
+
+
+                        <div class="post-meta meta-tags">
+                            
+                            <ul class="clearfix">
+                                
+                                <li><a href="https://www.tylinux.com/tags/reverse">reverse</a></li>
+                                
+                                <li><a href="https://www.tylinux.com/tags/macOS">macOS</a></li>
+                                
+                            </ul>
+                            
+                        </div>
+                    </article>
+                    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+                </div>
+            </div>
+            <div id="secondary">
+    <section class="widget">
+        <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-1700/" title="AMD Ryzen 1700 也吃黑苹果">AMD Ryzen 1700 也吃黑苹果</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/pwnable-0x01-orw/" title="pwnable.tw 0x1 orw writeup">pwnable.tw 0x1 orw writeup</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/pwnable-0x00-start/" title="pwnable.tw 0x0 start writeup">pwnable.tw 0x0 start writeup</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install-jenkins-with-docker-on-synology/" title="在群晖中使用 Docker 安装 Jenkins">在群晖中使用 Docker 安装 Jenkins</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/upgrade-from-iOS-11-1-2-to-iOS-11-3-1-with-blob/" title="使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1">使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/iOS%E5%BC%80%E5%8F%91/">iOS开发(1)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全(2)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件(3)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用(3)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E8%BD%AF%E4%BB%B6%E5%BC%80%E5%8F%91/">软件开发(1)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究(7)</a>
+    </li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+            <li><a href="https://www.tylinux.com/index.xml"><img src="icons/rss.svg" style="width:16px; height:16px">订阅</a></li>
+        </ul>
+    </section>
+</div>
+        </div>
+    </div>
+</div>
+<footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://www.tylinux.com/">不正经的正经程序猿 By tylinux</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/rujews/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    <script type="text/javascript">
+    
+    (function(){
+        $("pre code").parent().addClass("line-numbers")
+    }())
+
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [ ['$','$'] ],
+            processEscapes: true
+        }
+    };
+    </script>
+    <script type="text/javascript" src="/js/prism.js" async="true"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+</body>
+</html>

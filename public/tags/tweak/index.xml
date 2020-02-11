@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>tweak on 不正经的正经程序猿</title>
+    <link>https://www.tylinux.com/tags/tweak/</link>
+    <description>Recent content in tweak on 不正经的正经程序猿</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh_CN</language>
+    <lastBuildDate>Wed, 07 Feb 2018 23:45:49 +0000</lastBuildDate>
+    
+	<atom:link href="https://www.tylinux.com/tags/tweak/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>iOS 11.0 - 11.1.2 越狱插件安装指南</title>
+      <link>https://www.tylinux.com/post/install-tweak-with-electra-on-ios11/</link>
+      <pubDate>Wed, 07 Feb 2018 23:45:49 +0000</pubDate>
+      
+      <guid>https://www.tylinux.com/post/install-tweak-with-electra-on-ios11/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;Electra 1.0 已经释出，包含 Cydia，下边的内容可能不适用于新版本的 Electra，仅供理解 Cydia 原理用。&lt;/p&gt;
+&lt;/blockquote&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

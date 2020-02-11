@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="generator" content="Hugo 0.64.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>搭建私有Cydia源 | 不正经的正经程序猿</title>
+    <meta property="og:title" content="搭建私有Cydia源 - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content="2017-08-22T13:40:36&#43;08:00">
+        
+        
+    <meta property="article:modified_time" content="2017-08-22T13:40:36&#43;08:00">
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="搭建私有Cydia源">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/create-private-cydia-repo/">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="/css/normalize.css">
+    
+        <link rel="stylesheet" href="/css/prism.css">
+    
+    <link rel="stylesheet" href="/css/style.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
+
+    
+
+
+    
+    
+</head>
+
+<body>
+<header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+<div id="body">
+    <div class="container">
+        <div class="col-group">
+
+            <div class="col-8" id="main">
+                <div class="res-cons">
+                    <article class="post">
+                        <header>
+                            <h1 class="post-title">搭建私有Cydia源</h1>
+                        </header>
+                        <date class="post-meta meta-date">
+                            2017年8月22日
+                        </date>
+                        
+                        <div class="post-meta">
+                            <span>|</span>
+                            
+                                <span class="meta-category"><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6">逆向研究</a></span>
+                            
+                        </div>
+                        
+                        
+                        <div class="post-meta">
+                            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span> 阅读</span></span>
+                        </div>
+                        
+                        
+                        <div class="post-content">
+                            <p>在通过 <code>TheOS</code> 完成 Tweak 的开发后，我们通常会执行 <code>make package install</code> 命令来将 Tweak 安装到越狱设备上。但如果需要将 Tweak 部署到大量设备上，安装和更新都是一个问题。这个时候，我们可以通过部署私有的 Cydia 源来完成 Tweak 的安装和更新。</p>
+<h2 id="依赖">依赖</h2>
+<p>为了一次性把我们自己的 Tweak 以及依赖的其他库安装上，应该在我们的 Tweak 中写明依赖的库。具体修改的是 Tweak 工程中的 control 文件。control 文件内容如下：</p>
+<pre><code>Package: 12306
+Name: 12306
+Depends: mobilesubstrate, com.conradkramer.open
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome MobileSubstrate tweak!
+Maintainer: windy
+Author: windy
+Section: Tweaks
+</code></pre><p>在 <code>Depends</code> 项中添加 Tweak 的依赖，以逗号隔开。要注意：这里填写的是包名，比如 <code>Open</code> 这个工具，需要填写的是 <code>com.conradkramer.open</code>，可以先用Cydia安装，然后 <code>dpkg -l</code> 查看。</p>
+<p>补全依赖之后，就可以 <code>make package</code> 生成新的 deb 包了。</p>
+<h2 id="搭建">搭建</h2>
+<p>deb 的源本质上就是需要特定结构的目录，基本的目录结构如下：</p>
+<pre><code>.
+├── 12306_0.0.1-1+debug_iphoneos-arm.deb
+├── 12306daemon_0.0.1-1+debug_iphoneos-arm.deb
+├── Packages.bz2
+└── Release
+</code></pre><p>如上所示，除了 <code>.deb</code> 包文件以外，源目录中还包含 <code>Packages.bz2</code> 和 <code>Release</code> 两个文件。其中，Release是一个普通的文本文件，用于描述当前源的信息，示例内容如下：</p>
+<pre><code>Origin: Test Repo
+Label: Test Repo
+Suite: stable
+Version: 1.0
+Codename: ios
+Architectures: iphoneos-arm
+Components: main
+Description: This is a test Cydia repo.
+</code></pre><p>这些信息会在 Cydia 的源列表及 Tweak 搜索列表中显示。</p>
+<p><code>Packages.bz2</code> 则是一个 bzip2 压缩过的文件，原始文件为 Packages，通过如下命令生成：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 扫名当前目录下的 .deb 文件，生成 Packages 文件</span>
+dpkg-scanpackages -m . /dev/null &gt; Packages
+
+<span style="color:#75715e"># 压缩 Packages 文件</span>
+bzip2 Packages
+</code></pre></div><p>Packages 文件中包含源中每个包文件的信息，包括文件路径、大小、依赖、架构及校验信息等。
+文件内容示例如下：</p>
+<pre><code>Package: 12306
+Version: 0.0.1-2+debug
+Architecture: iphoneos-arm
+Maintainer: windy
+Installed-Size: 720
+Depends: mobilesubstrate, com.conradkramer.open
+Filename: ./12306_0.0.1-1+debug_iphoneos-arm.deb
+Size: 149474
+MD5sum: ab455157951b24cb235766656b73d0c5
+SHA1: caafa284cce8c45dbaa44c0de7e1d9ef4342870a
+SHA256: a07fab6619b2f82344467f20d76a91ee6268f3e6d024bf9d6dae2b93d012629d
+Section: Tweaks
+Description: An awesome MobileSubstrate tweak!
+Author: windy
+Name: 12306
+
+Package: 12306daemon
+Version: 0.0.1-2+debug
+Architecture: iphoneos-arm
+Maintainer: windy
+Installed-Size: 76
+Depends: mobilesubstrate,com.conradkramer.open
+Filename: ./12306daemon_0.0.1-1+debug_iphoneos-arm.deb
+Size: 3374
+MD5sum: eeddb216336577f199b5b6080e74c4fc
+SHA1: 993bf3ba059caf9ab67a6456b523c1ec64a1b624
+SHA256: daf8ad0f22bbae19c910ce1115d151a0d7cbf71cf0a8ff3bf4975f5bb2ecb9b6
+Section: Tweaks
+Description: An awesome MobileSubstrate tweak!
+Author: windy
+Name: 12306daemon
+
+</code></pre><h2 id="部署">部署</h2>
+<p>部署比较简单，只需要在服务器上安装&amp;&amp;启动 nginx，将上述目录放置在 nginx 根目录下既可。也可以放置在子目录中，但在 Cydia 中输入源地址时，要包含相应的子目录。</p>
+<h2 id="测试">测试</h2>
+<p>打开 Cydia ，在源编辑页面选择 ”添加“，输入服务器地：
+<img src="/images/15033805128579.jpg" alt=""></p>
+<p>点击 “添加”后，会自动更新源缓存，下载Release 和 Packages.bz2 文件。更新完成后，即可 ”搜索“ 中搜索安装我们的 Tweak 了。 Enjoy it.</p>
+                        </div>
+
+                        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/create-private-cydia-repo/">https://www.tylinux.com/post/create-private-cydia-repo/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+                        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/reverse-neteasemusic-001/">网易云音乐客户端逆向分析（1）</a></li>
+        
+        <li><a href="/post/live-under-console-on-macOS/">在macOS下高效使用命令行</a></li>
+        
+        <li><a href="/about/"></a></li>
+        
+        <li><a href="/archives/">归档</a></li>
+        
+    </ul>
+</div>
+
+
+                        <div class="post-meta meta-tags">
+                            
+                            <ul class="clearfix">
+                                
+                                <li><a href="https://www.tylinux.com/tags/reverse">reverse</a></li>
+                                
+                                <li><a href="https://www.tylinux.com/tags/iOS">iOS</a></li>
+                                
+                                <li><a href="https://www.tylinux.com/tags/Cydia">Cydia</a></li>
+                                
+                            </ul>
+                            
+                        </div>
+                    </article>
+                    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+                </div>
+            </div>
+            <div id="secondary">
+    <section class="widget">
+        <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-1700/" title="AMD Ryzen 1700 也吃黑苹果">AMD Ryzen 1700 也吃黑苹果</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/pwnable-0x01-orw/" title="pwnable.tw 0x1 orw writeup">pwnable.tw 0x1 orw writeup</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/pwnable-0x00-start/" title="pwnable.tw 0x0 start writeup">pwnable.tw 0x0 start writeup</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install-jenkins-with-docker-on-synology/" title="在群晖中使用 Docker 安装 Jenkins">在群晖中使用 Docker 安装 Jenkins</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/upgrade-from-iOS-11-1-2-to-iOS-11-3-1-with-blob/" title="使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1">使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">分类</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/iOS%E5%BC%80%E5%8F%91/">iOS开发(1)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全(2)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件(3)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用(3)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E8%BD%AF%E4%BB%B6%E5%BC%80%E5%8F%91/">软件开发(1)</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究(7)</a>
+    </li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title">标签</h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+            <li><a href="https://www.tylinux.com/index.xml"><img src="icons/rss.svg" style="width:16px; height:16px">订阅</a></li>
+        </ul>
+    </section>
+</div>
+        </div>
+    </div>
+</div>
+<footer id="footer">
+    <div class="container">
+        &copy; 2020 <a href="https://www.tylinux.com/">不正经的正经程序猿 By tylinux</a>.
+        Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/rujews/maupassant-hugo" target="_blank">maupassant</a>.
+        
+    </div>
+</footer>
+
+
+    <script type="text/javascript">
+    
+    (function(){
+        $("pre code").parent().addClass("line-numbers")
+    }())
+
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [ ['$','$'] ],
+            processEscapes: true
+        }
+    };
+    </script>
+    <script type="text/javascript" src="/js/prism.js" async="true"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>reverse on 不正经的正经程序猿</title>
+    <link>https://www.tylinux.com/tags/reverse/</link>
+    <description>Recent content in reverse on 不正经的正经程序猿</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh_CN</language>
+    <lastBuildDate>Mon, 12 Mar 2018 20:56:08 +0000</lastBuildDate>
+    
+	<atom:link href="https://www.tylinux.com/tags/reverse/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>dumpdecrypted.dylib 原理分析</title>
+      <link>https://www.tylinux.com/post/how-dumpdecrypted-dylib-works/</link>
+      <pubDate>Mon, 12 Mar 2018 20:56:08 +0000</pubDate>
+      
+      <guid>https://www.tylinux.com/post/how-dumpdecrypted-dylib-works/</guid>
+      <description>&lt;p&gt;在 iOS 平台上，从 App Store 下载的 App 会被 Apple 使用 &lt;code&gt;FairPlay&lt;/code&gt; 技术加密，使得程序无法在其他未登录相同 AppleID 的设备上运行，起到 &lt;code&gt;DRM&lt;/code&gt; 的作用。这样的文件同样也无法使用 IDA Pro 等工具进行分析。不管是出于安全研究还是再次分发的目的，都需要获取未加密的二进制文件，这一过程俗称砸壳。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>搭建私有Cydia源</title>
+      <link>https://www.tylinux.com/post/create-private-cydia-repo/</link>
+      <pubDate>Tue, 22 Aug 2017 13:40:36 +0000</pubDate>
+      
+      <guid>https://www.tylinux.com/post/create-private-cydia-repo/</guid>
+      <description>&lt;p&gt;在通过 &lt;code&gt;TheOS&lt;/code&gt; 完成 Tweak 的开发后，我们通常会执行 &lt;code&gt;make package install&lt;/code&gt; 命令来将 Tweak 安装到越狱设备上。但如果需要将 Tweak 部署到大量设备上，安装和更新都是一个问题。这个时候，我们可以通过部署私有的 Cydia 源来完成 Tweak 的安装和更新。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>网易云音乐客户端逆向分析（1）</title>
+      <link>https://www.tylinux.com/post/reverse-neteasemusic-001/</link>
+      <pubDate>Wed, 19 Jul 2017 10:06:04 +0000</pubDate>
+      
+      <guid>https://www.tylinux.com/post/reverse-neteasemusic-001/</guid>
+      <description>&lt;h2 id=&#34;获取webapp内容&#34;&gt;获取WebApp内容&lt;/h2&gt;
+&lt;p&gt;进入&lt;code&gt;NeteaseMusic.app/Contents&lt;/code&gt;目录观察，早就听闻网易云音乐客户端是个Hybird App，那想必&lt;code&gt;Resources&lt;/code&gt;目录一定有相应的Web代码资源，ls后观察，在一堆图片文件里有个&lt;strong&gt;resources.pack&lt;/strong&gt;文件很显眼：&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

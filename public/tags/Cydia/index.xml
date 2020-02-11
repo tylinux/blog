@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cydia on 不正经的正经程序猿</title>
+    <link>https://www.tylinux.com/tags/Cydia/</link>
+    <description>Recent content in Cydia on 不正经的正经程序猿</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh_CN</language>
+    <lastBuildDate>Tue, 22 Aug 2017 13:40:36 +0000</lastBuildDate>
+    
+	<atom:link href="https://www.tylinux.com/tags/Cydia/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>搭建私有Cydia源</title>
+      <link>https://www.tylinux.com/post/create-private-cydia-repo/</link>
+      <pubDate>Tue, 22 Aug 2017 13:40:36 +0000</pubDate>
+      
+      <guid>https://www.tylinux.com/post/create-private-cydia-repo/</guid>
+      <description>&lt;p&gt;在通过 &lt;code&gt;TheOS&lt;/code&gt; 完成 Tweak 的开发后，我们通常会执行 &lt;code&gt;make package install&lt;/code&gt; 命令来将 Tweak 安装到越狱设备上。但如果需要将 Tweak 部署到大量设备上，安装和更新都是一个问题。这个时候，我们可以通过部署私有的 Cydia 源来完成 Tweak 的安装和更新。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
