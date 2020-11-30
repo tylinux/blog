@@ -1,0 +1,21 @@
+kind: pipeline
+name: build && publish
+
+steps:
+- name: update theme
+  image: alpine/git
+  commands:
+    - echo "[http \"https://github.com\"]" > ~/.gitconfig
+    - echo "	proxy = socks5://192.168.123.1:1080" >> ~/.gitconfig
+    - git submodule update --recursive --init
+
+- name: generate
+  image: plugins/hugo
+  settings:
+    hugo_version: 0.79.0
+    validate: true
+  commands:
+    - hugo
+
+# - name: deploy
+#   image: appleboy/drone-scp
