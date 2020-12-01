@@ -15,5 +15,16 @@ steps:
   commands:
     - hugo
 
-# - name: deploy
-#   image: appleboy/drone-scp
+- name: deploy
+  image: appleboy/drone-scp
+  settings:
+    host:
+      - tylinux.com
+    username: tylinux
+    port: 22
+    key: 
+      from_secret: deploy_key
+    source:
+      - public
+    target:
+      - /home/tylinux/public
