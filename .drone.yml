@@ -27,4 +27,4 @@ steps:
     source:
       - public
     target:
-      - /home/tylinux/public
+      - /home/tylinux/docker/nginx/
