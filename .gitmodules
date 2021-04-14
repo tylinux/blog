@@ -1,3 +1,3 @@
 [submodule "themes/maupassant"]
 	path = themes/maupassant
-	url = https://git.in.tylinux.xyz:60443/tylinux/maupassant.git/
+	url = ../maupassant.git
