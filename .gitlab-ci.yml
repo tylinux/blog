@@ -1,22 +1,23 @@
 hugo-build:
   image: registry.gitlab.com/pages/hugo:latest
+  stage: build
 
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
 
-  pages:
-    script:
-      - hugo version
-      - hugo
-    artifacts:
-      paths:
-        - public
-    only:
-      variables:
-        - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - hugo version
+    - hugo
+  artifacts:
+    paths:
+      - public
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 hugo-deploy:
   image: ubuntu
+  stage: deploy
   before_script:
     - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )"
     - eval $(ssh-agent -s)
@@ -26,7 +27,6 @@ hugo-deploy:
     - ssh-keyscan tylinux.com >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
 
-  deploy:
-    script:
-      - tar zcvf public.tar.gz public/
-      - scp public.tar.gz tylinux@tylinux.com:docker
+  script:
+    - tar zcvf public.tar.gz public/
+    - scp public.tar.gz tylinux@tylinux.com:docker
