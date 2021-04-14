@@ -29,4 +29,5 @@ hugo-deploy:
 
   script:
     - tar zcvf public.tar.gz public/
-    - scp public.tar.gz tylinux@tylinux.com:docker
+    - scp public.tar.gz tylinux@tylinux.com:docker/nginx
+    - ssh tylinux@tylinux.com cd docker/nginx; tar zxvf public.tar.gz; rm public.tar.gz; docker restart nginx
