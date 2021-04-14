@@ -1,25 +1,32 @@
----
-# All available Hugo versions are listed here:
-# https://gitlab.com/pages/hugo/container_registry
-image: registry.gitlab.com/pages/hugo:latest
+hugo-build:
+  image: registry.gitlab.com/pages/hugo:latest
 
-variables:
-  GIT_SUBMODULE_STRATEGY: recursive
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
 
-test:
-  script:
-    - hugo
-  except:
-    variables:
-      - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  pages:
+    script:
+      - hugo version
+      - hugo
+    artifacts:
+      paths:
+        - public
+    only:
+      variables:
+        - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-pages:
-  script:
-    - hugo version
-    - hugo
-  artifacts:
-    paths:
-      - public
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+hugo-deploy:
+  image: ubuntu
+  before_script:
+    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan tylinux.com >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+  deploy:
+    script:
+      - tar zcvf public.tar.gz public/
+      - scp public.tar.gz tylinux@tylinux.com:docker
