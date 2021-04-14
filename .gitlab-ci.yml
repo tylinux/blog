@@ -15,6 +15,7 @@ test:
 
 pages:
   script:
+    - hugo version
     - hugo
   artifacts:
     paths:
