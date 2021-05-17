@@ -2,7 +2,7 @@
 title: "macOS 10.15.1 下编译 VirtualBox 6.1.0"
 date: 2019-12-29T18:44:33+08:00
 tags: [hackintosh,ryzen,virtualbox]
-categories: ["软件开发"]
+categories: ["开发"]
 ---
 
 在 AMD CPU 的机器上安装黑苹果之后，能用的虚拟机软件基本只有 VirtualBox 了。虽然能用，但是性能差的让人抠脚。通常来讲，虚拟机软件会优先利用 CPU 的虚拟化特性，比如 Intel 的 `VT-X/VT-D` 以及 AMD 的 `SVM`，在硬件虚拟化不可用的时候，会使用纯软件模拟的方式运行 Guest 系统指令。macOS 截止目前，全部运行在 Intel 的 CPU 上，所以其虚拟化框架 `Hypervisor.framework`，也全部是基于 Intel 的虚拟化指令实现，并没有兼容 AMD，这也是 `VMWare` 等其他虚拟机软件无法在 AMD CPU 的黑苹果上运行的根本原因。
