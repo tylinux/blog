@@ -5,7 +5,7 @@ stages:
   - notification
 
 hugo-build:
-  image: registry.gitlab.com/pages/hugo:latest
+  image: registry.tylinux.com/hugo:latest
   stage: build
 
   variables:
