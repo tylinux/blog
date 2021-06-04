@@ -1,3 +1,9 @@
+stages:
+  - build
+  - deploy
+  - sync
+  - notification
+
 hugo-build:
   image: registry.gitlab.com/pages/hugo:latest
   stage: build
@@ -16,18 +22,26 @@ hugo-build:
       - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 hugo-deploy:
-  image: ubuntu
+  image: registry.tylinux.com/gitlab-ssh:latest
   stage: deploy
-  before_script:
-    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )"
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan tylinux.com >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
 
   script:
+    - bash /setup.sh
     - tar zcvf public.tar.gz public/
     - scp public.tar.gz tylinux@tylinux.com:docker/nginx
     - ssh tylinux@tylinux.com "cd docker/nginx; tar zxvf public.tar.gz; rm public.tar.gz; cd ~/docker; docker-compose restart nginx"
+
+push-github:
+  image: registry.tylinux.com/gitlab-ssh:latest
+  stage: sync
+
+  script:
+    - bash /setup.sh
+    - git remote add upstream git@github.com:tylinux/blog.git
+    - git push upstream master
+
+notification:
+  image: registry.tylinux.com/send_tg:latest
+  stage: notification
+  script:
+    - send_tg $TG_PRIVATE_ID -t "博客部署成功!"
