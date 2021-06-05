@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
+
+    <title>Android 设备上使用 Termux 安装运行 gitlab-runner | 不正经的正经程序猿</title>
+    <meta property="og:title" content="Android 设备上使用 Termux 安装运行 gitlab-runner - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2021-05-19T23:39:17&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2021-05-19T23:39:17&#43;08:00'>
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="Android 设备上使用 Termux 安装运行 gitlab-runner">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/install_gitlab_runner_on_android/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">Android 设备上使用 Termux 安装运行 gitlab-runner</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2021年5月19日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8'>系统应用</a></span>
+            
+        </div>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <h2 id="安装-termux">安装 Termux</h2>
+<ol>
+<li>Termux: <a href="https://f-droid.org/packages/com.termux/">https://f-droid.org/packages/com.termux/</a></li>
+<li>Termux-boot: <a href="https://f-droid.org/packages/com.termux.boot/">https://f-droid.org/packages/com.termux.boot/</a></li>
+</ol>
+<h2 id="换源">换源</h2>
+<p>Termux 默认软件源国内链接可能不顺畅，可以改用清华的源，如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># 执行如下命令更换三个源</span>
+termux-change-repo
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="安装并启用-sshd">安装并启用 sshd</h2>
+<p>该步骤主要是为了远程操作，避免在手机上大量输入。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># 安装 openssh</span>
+apt install openssh termux-services
+
+<span style="color:#75715e"># 启动 sshd</span>
+sshd
+
+<span style="color:#75715e"># 修改密码</span>
+passwd
+
+<span style="color:#75715e"># 获取用户名</span>
+whoami
+</code></pre></td></tr></table>
+</div>
+</div><p>完成后执行 <code>exit</code> 关闭会话，重新打开 APP 后执行：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sv-enable sshd
+
+sv up sshd
+</code></pre></td></tr></table>
+</div>
+</div><p>使能 <code>sshd</code> 服务。</p>
+<p>之后，在 PC/Mac 上执行:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">adb forward tcp:8022 tcp:8022
+
+ssh <span style="color:#66d9ef">$(</span>user<span style="color:#66d9ef">)</span>@127.0.0.1 -p <span style="color:#ae81ff">8022</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>即可远程登录到 Termux 中。</p>
+<h2 id="编译-gitlab-runner">编译 gitlab-runner</h2>
+<h3 id="1-安装依赖">1. 安装依赖</h3>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">apt install golang git
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="2-clone-源码">2. clone 源码</h3>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">git clone https://gitlab.com/gitlab-org/gitlab-runner.git -b v13.11.0
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="3-安装-go-依赖--编译">3. 安装 go 依赖 &amp;&amp; 编译</h3>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd gitlab-runner
+go get 
+go build
+</code></pre></td></tr></table>
+</div>
+</div><p>将生成的 <code>gitlab-runner</code> 可执行文件 copy 到 <code>$HOME/../var/bin/</code> 目录，即可完成安装。</p>
+<h3 id="注册-runner">注册 runner</h3>
+<p>和其他平台一致，执行 <code>gitlab-runner register</code> 注册即可。可能会有一些错误和警告，可以忽略。
+注意 executor type 选择 <code>shell</code></p>
+<h3 id="自启动-gitlab-runner">自启动 gitlab-runner</h3>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd $HOME/../usr/var/service
+
+mkdir -p gitlab-runner/log
+cd gitlab-runner
+
+ln -sf /data/data/com.termux/files/usr/share/termux-services/svlogger log/run
+
+touch run down
+chmod +x run
+chmod +x run
+</code></pre></td></tr></table>
+</div>
+</div><p>在 <code>run</code> 中写入如下内容:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e">#!/bin/sh
+</span><span style="color:#75715e"></span>
+exec gitlab-runner run --working-directory $HOME --config $HOME/.gitlab-runner/config.toml 2&gt;&amp;<span style="color:#ae81ff">1</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>保存退出。</p>
+<p>重启终端，执行 <code>sv-enable gitlab-runner</code> 启用自启动；<code>sv up gitlab-runner</code> 启动 gitlab-runner.</p>
+<p>测试结果如下图：</p>
+<p>
+        <img class="mx-auto" alt="" src="https://i.loli.net/2021/05/19/Bt97ISAmCowvMxY.jpg" />   
+    </p>
+<h2 id="参考链接">参考链接</h2>
+<ol>
+<li><a href="http://mirrors.ustc.edu.cn/help/termux.html">Termux 源使用帮助</a></li>
+<li><a href="https://wiki.termux.com/wiki/Termux-services">Termux-services</a></li>
+<li><a href="https://wiki.termux.com/wiki/Termux:Boot">Termux:Boot</a></li>
+</ol>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/">https://www.tylinux.com/post/install_gitlab_runner_on_android/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/run-linux-dist-on-android-with-linux-deploy/">使用 Linux deploy 在 Android 设备上运行 Linux 发行版</a></li>
+        
+        <li><a href="/post/one_small_cocoapods_issue/">CocoaPods 小坑一例</a></li>
+        
+        <li><a href="/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a></li>
+        
+        <li><a href="/post/fix_jietu_crash_with_reverse_method/">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a></li>
+        
+        <li><a href="/post/downgrade-iOS-13-3-to-13-2-3/">iPhone SE 降级 iOS 13.2.3</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/linux'>linux</a></li>
+                
+                <li><a href='/tags/android'>android</a></li>
+                
+                <li><a href='/tags/arm'>arm</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="https://www.tylinux.com/">不正经的正经程序猿 By
+            tylinux</a>
+        
+    </div>
+    <br />
+    
+</footer>
+
+
+
+<script type="text/javascript">
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [['$', '$']],
+            processEscapes: true
+        }
+    };
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/" title="也折腾博云物联辣鸡网络摄像头（上）">也折腾博云物联辣鸡网络摄像头（上）</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/" title="Android 设备上使用 Termux 安装运行 gitlab-runner">Android 设备上使用 Termux 安装运行 gitlab-runner</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/one_small_cocoapods_issue/" title="CocoaPods 小坑一例">CocoaPods 小坑一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/" title="翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/" title="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全 (2)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E5%BC%80%E5%8F%91/">开发 (3)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件 (5)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用 (4)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究 (8)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

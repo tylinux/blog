@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>macOS on 不正经的正经程序猿</title>
+    <link>https://www.tylinux.com/tags/macOS/</link>
+    <description>Recent content in macOS on 不正经的正经程序猿</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh_CN</language>
+    <lastBuildDate>Mon, 07 Dec 2020 19:14:09 +0800</lastBuildDate><atom:link href="https://www.tylinux.com/tags/macOS/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</title>
+      <link>https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/</link>
+      <pubDate>Mon, 07 Dec 2020 19:14:09 +0800</pubDate>
+      
+      <guid>https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/</guid>
+      <description>&lt;p&gt;腾讯开发的截图工具：&lt;a href=&#34;https://apps.apple.com/us/app/%E6%88%AA%E5%9B%BE-jietu-%E5%BF%AB%E9%80%9F%E6%A0%87%E6%B3%A8-%E4%BE%BF%E6%8D%B7%E5%88%86%E4%BA%AB%E7%9A%84%E6%88%AA%E5%B1%8F%E5%B7%A5%E5%85%B7/id1059334054?mt=12&#34;&gt;Jietu&lt;/a&gt; 一直是我在 macOS 下最喜欢的截图工具，不过在升级到 macOS 11 Big Sur 之后就 GG 了，区域截图的时候会崩溃。这 App 上次更新是在 3 年前，指望腾讯修复希望不大，正好这俩天有空，尝试自己定位解决一下问题。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>网易云音乐客户端逆向分析（1）</title>
+      <link>https://www.tylinux.com/post/reverse-neteasemusic-001/</link>
+      <pubDate>Wed, 19 Jul 2017 10:06:04 +0000</pubDate>
+      
+      <guid>https://www.tylinux.com/post/reverse-neteasemusic-001/</guid>
+      <description>&lt;h2 id=&#34;获取webapp内容&#34;&gt;获取WebApp内容&lt;/h2&gt;
+&lt;p&gt;进入&lt;code&gt;NeteaseMusic.app/Contents&lt;/code&gt;目录观察，早就听闻网易云音乐客户端是个Hybird App，那想必&lt;code&gt;Resources&lt;/code&gt;目录一定有相应的Web代码资源，ls后观察，在一堆图片文件里有个&lt;strong&gt;resources.pack&lt;/strong&gt;文件很显眼：&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>在macOS下高效使用命令行</title>
+      <link>https://www.tylinux.com/post/live-under-console-on-macOS/</link>
+      <pubDate>Wed, 31 Aug 2016 00:46:08 +0000</pubDate>
+      
+      <guid>https://www.tylinux.com/post/live-under-console-on-macOS/</guid>
+      <description>&lt;p&gt;相对于Windows和Linux，macOS最吸引人的地方在于精致的图形界面与强大的命令行的完美结合。熟悉macOS历史的同学应该知道，macOS的内核衍生自FreeBSD，属于正统Unix。因此，macOS下的各种终端命令的参数格式都是BSD式，对于习惯了Linux参数格式的我来讲有些许不适用，好在有Homebrew的加持，可以很方便的改回到Linux方式：&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

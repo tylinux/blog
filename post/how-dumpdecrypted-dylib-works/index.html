@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
+
+    <title>dumpdecrypted.dylib 原理分析 | 不正经的正经程序猿</title>
+    <meta property="og:title" content="dumpdecrypted.dylib 原理分析 - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2018-03-12T20:56:08&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2018-03-12T20:56:08&#43;08:00'>
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="dumpdecrypted.dylib 原理分析">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/how-dumpdecrypted-dylib-works/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">dumpdecrypted.dylib 原理分析</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2018年3月12日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6'>逆向研究</a></span>
+            
+        </div>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>在 iOS 平台上，从 App Store 下载的 App 会被 Apple 使用 <code>FairPlay</code> 技术加密，使得程序无法在其他未登录相同 AppleID 的设备上运行，起到 <code>DRM</code> 的作用。这样的文件同样也无法使用 IDA Pro 等工具进行分析。不管是出于安全研究还是再次分发的目的，都需要获取未加密的二进制文件，这一过程俗称砸壳。</p>
+<p><!-- raw HTML omitted -->砸壳工具林林总总，核心原理其实一致：</p>
+<p><!-- raw HTML omitted -->iOS/macOS 系统中，可执行文件、动态库等，都使用 <code>DYLD</code> 加载执行。在 iOS 系统中使用 DYLD 载入 App 时，会先进行 DRM 检查，检查通过则从 App 的可执行文件中，选择适合当前设备架构的 Mach-O 镜像进行解密，然后载入内存执行。dumpdecrypted 等脱壳工具，就是利用这一原理，从内存中将已解密的镜像 “dump” 出来，再生成新的镜像文件，从而达到解密的效果。其实 FairPlay 算法依托硬件设备足够强大，迄今为止还没有能够脱离 iDevice 解密的工具。</p>
+<p><!-- raw HTML omitted --><a href="https://github.com/stefanesser/dumpdecrypted.git">dumpdecrypted.dylib</a> 是由德国安全专家“树人”开发的一款砸壳工具，通过 <code>DYLD_INSERT_LIBRARIES</code> 的方式简单地完成砸壳工作。不过我这里分析的是 AloneMonkey 的<a href="https://github.com/AloneMonkey/dumpdecrypted.git">修改版本</a>，他在原有代码的基础上，把部分 <code>print</code> 改成了 <code>NSLog</code>，生成的 <code>.decrypted</code> 文件放到了 <code>Documents</code> 目录，最主要的是，替换了 <code>_exit(1)</code> 为 <code>return</code>，这样，就不止会处理可执行程序的镜像文件，随后加载的 fremework、Dylib 也会被一同 <code>Decrypt</code>。</p>
+<p><!-- raw HTML omitted -->dumpdecrypted源码十分简单，带注释一共只有230行，三个 C 函数。下边就来分析一下它的实现原理。</p>
+<h2 id="入口">入口</h2>
+<p>眼尖的同志可能一眼就发现了，源码里没有 <code>main</code> 函数（废话，毕竟编译出来就是个 dylib）。代码的入口是：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">__attribute__((constructor))
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> dumpexecutable() {
+	printf(<span style="color:#e6db74">&#34;mach-o decryption dumper</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span>);
+	printf(<span style="color:#e6db74">&#34;DISCLAIMER: This tool is only meant for security research purposes, not for application crackers.&#34;</span>);
+	_dyld_register_func_for_add_image(<span style="color:#f92672">&amp;</span>image_added);
+}
+</code></pre></td></tr></table>
+</div>
+</div><p><code>__attribute__</code> 这个关键字由 GCC 引入的，用于为函数设置特殊属性，具体可见<a href="https://gcc.gnu.org/onlinedocs/gcc-4.6.4/gcc/Function-Attributes.html">这里</a>。这里的 <code>__attribute__((constructor))</code>修饰的 <code>dumpexecutable</code> 函数，会在（目标App的）+load 方法之后， <code>main</code> 函数执行之前被自动调用。在函数里，除了输出两行提示消息以外，就是调用了一个 <code>_dyld_register_func_for_add_image()</code> 方法。</p>
+<h2 id="_dyld_register_func_for_add_image"><strong>_dyld_register_func_for_add_image</strong></h2>
+<p><code>_dyld_register_func_for_add_image</code> 这个函数声明在 <code>mach-o/dyld.h</code> 文件里，如下：</p>
+<pre><code>/*
+ * The following functions allow you to install callbacks which will be called   
+ * by dyld whenever an image is loaded or unloaded.  During a call to _dyld_register_func_for_add_image()
+ * the callback func is called for every existing image.  Later, it is called as each new image
+ * is loaded and bound (but initializers not yet run).  The callback registered with
+ * _dyld_register_func_for_remove_image() is called after any terminators in an image are run
+ * and before the image is un-memory-mapped.
+ */
+ 
+extern void _dyld_register_func_for_add_image(void (*func)(const struct mach_header* mh, intptr_t vmaddr_slide))    __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_2_0);
+extern void _dyld_register_func_for_remove_image(void (*func)(const struct mach_header* mh, intptr_t vmaddr_slide)) __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_2_0);
+
+</code></pre><p>从注释中可以知道，通过<code>_dyld_register_func_for_add_image</code> 注册的回调函数会在每次 dyld 加载镜像之后被调用。传递给回调函数的参数有两个：载入镜像的文件头：mach_header 和内存数量：vmaddr_slide。在本例中，dumpexecutable 函数中通过 _dyld_register_func_for_add_image 函数向 dyld 注册一个回调函数 <code>image_added</code>，每当 dyld 载入一个镜像（可以是可执行程序、动态库、Plugin等），dyld 会调用 image_added 函数，并将相应的 Mach-O header 和 vmaddr_slide 传递给 image_added。那么，image_added 里又干了啥呢？</p>
+<h2 id="image_added">image_added</h2>
+<p>image_added 方法依旧很短，只有三行，如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">image_added</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> mach_header <span style="color:#f92672">*</span>mh, intptr_t slide) {
+	Dl_info image_info;
+	<span style="color:#66d9ef">int</span> result <span style="color:#f92672">=</span> dladdr(mh, <span style="color:#f92672">&amp;</span>image_info);
+	dumptofile(image_info.dli_fname, mh);
+}
+</code></pre></td></tr></table>
+</div>
+</div><p><code>Dl_info</code> 结构体用于存储一些镜像的信息，比如路径，基址等等，它定义在 <code>dlfcn.h</code> 文件中，如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> dl_info {
+	<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span>  <span style="color:#f92672">*</span>dli_fname;     <span style="color:#75715e">/* Pathname of shared object */</span>
+	<span style="color:#66d9ef">void</span>        <span style="color:#f92672">*</span>dli_fbase;     <span style="color:#75715e">/* Base address of shared object */</span>
+	<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span>  <span style="color:#f92672">*</span>dli_sname;     <span style="color:#75715e">/* Name of nearest symbol */</span>
+	<span style="color:#66d9ef">void</span>        <span style="color:#f92672">*</span>dli_saddr;     <span style="color:#75715e">/* Address of nearest symbol */</span>
+} Dl_info;
+</code></pre></td></tr></table>
+</div>
+</div><p>之后通过调用 <code>dladdr</code> 函数，从 Mach-O Header 中填充 Dl_info 结构体。接着把镜像路径和 Mach-O header传给了 <code>dumptofile</code> 方法，然后就没有了。</p>
+<h2 id="dumptofile">dumptofile</h2>
+<p>这是整个程序中最后也是最长的一个函数，在看这个函数的内容之前，我们先看看在它之前定义的一个宏：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define swap32(value) (((value &amp; 0xFF000000) &gt;&gt; 24) | ((value &amp; 0x00FF0000) &gt;&gt; 8) | ((value &amp; 0x0000FF00) &lt;&lt; 8) | ((value &amp; 0x000000FF) &lt;&lt; 24) )
+</span></code></pre></td></tr></table>
+</div>
+</div><p>以 <code>value=0x12345678</code> 为例，简单说明下这个宏的作用：
+0x12345678 写成二进制位的形式如下：</p>
+<pre><code>|31           24|23           16|15            8|7         bit 0|
++---------------+---------------+---------------+---------------+
+|0 0 0 1 0 0 1 0|0 0 1 1 0 1 0 0|0 1 0 1 0 1 1 0|0 1 1 1 1 0 0 0|
++---------------+---------------+---------------+---------------+
+</code></pre><p>0xFF000000 如下：</p>
+<pre><code>+---------------+---------------+---------------+---------------+
+|1 1 1 1 1 1 1 1|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|
++---------------+---------------+---------------+---------------+
+</code></pre><p>0x12345678 &amp; 0xFF000000 按位与的结果：</p>
+<pre><code>+---------------+---------------+---------------+---------------+
+|0 0 0 1 0 0 1 0|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|
++---------------+---------------+---------------+---------------+
+</code></pre><p>然后右移24位：</p>
+<pre><code>+---------------+---------------+---------------+---------------+
+|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|0 0 0 0 0 0 0 0|0 0 0 1 0 0 1 0|
++---------------+---------------+---------------+---------------+
+</code></pre><p>结果就是，0x12345678 的高8位被移动到了低8位。之后的类似：</p>
+<pre><code>  0x12345678
+&amp; 0xFF000000
+------------
+  0x12000000 &gt;&gt; 24 = 0x00000012
+  
+  0x12345678
+&amp; 0x00FF0000
+------------
+  0x00340000 &gt;&gt; 8  = 0x00003400
+
+  0x12345678
+&amp; 0x0000FF00
+------------
+  0x00005600 &lt;&lt; 8  = 0x00560000
+  
+  0x12345678
+&amp; 0x000000FF
+------------
+  0x00340000 &gt;&gt; 24 = 0x78000000
+            
+                   | -----------
+                   = 0x78563412
+</code></pre><p>所以这个宏的功能就是：<strong>把数字从小端序转成大端序</strong></p>
+<p>回到正题：</p>
+<p>首先是定义了一波要使用的变量：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#66d9ef">struct</span> load_command <span style="color:#f92672">*</span>lc;
+<span style="color:#66d9ef">struct</span> encryption_info_command <span style="color:#f92672">*</span>eic;
+<span style="color:#66d9ef">struct</span> fat_header <span style="color:#f92672">*</span>fh;
+<span style="color:#66d9ef">struct</span> fat_arch <span style="color:#f92672">*</span>arch;
+<span style="color:#66d9ef">char</span> buffer[<span style="color:#ae81ff">1024</span>];
+<span style="color:#66d9ef">char</span> rpath[<span style="color:#ae81ff">4096</span>],npath[<span style="color:#ae81ff">4096</span>]; <span style="color:#75715e">/* should be big enough for PATH_MAX */</span>
+<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> fileoffs <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, off_cryptid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, restsize;
+<span style="color:#66d9ef">int</span> i,fd,outfd,r,n,toread;
+<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>tmp;
+</code></pre></td></tr></table>
+</div>
+</div><p>然后是从传入的镜像路径中，获取镜像文件名，并输出。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">if</span> (realpath(path, rpath) <span style="color:#f92672">==</span> NULL) {
+    strlcpy(rpath, path, <span style="color:#66d9ef">sizeof</span>(rpath));
+}
+	
+<span style="color:#75715e">/* extract basename */</span>
+tmp <span style="color:#f92672">=</span> strrchr(rpath, <span style="color:#e6db74">&#39;/&#39;</span>);
+printf(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span>);
+<span style="color:#66d9ef">if</span> (tmp <span style="color:#f92672">==</span> NULL) {
+	printf(<span style="color:#e6db74">&#34;[-] Unexpected error with filename.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	_exit(<span style="color:#ae81ff">1</span>);
+} <span style="color:#66d9ef">else</span> {
+	printf(<span style="color:#e6db74">&#34;[+] Dumping %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, tmp<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>);
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>做完了前边的定义和判断，下边就要开始真正地工作了，首先是通过文件头判断二进制文件架构：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#75715e">/* detect if this is a arm64 binary */</span>
+<span style="color:#66d9ef">if</span> (mh<span style="color:#f92672">-&gt;</span>magic <span style="color:#f92672">==</span> MH_MAGIC_64) {
+	lc <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> load_command <span style="color:#f92672">*</span>)((<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)mh <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> mach_header_64));
+	NSLog(<span style="color:#e6db74">@&#34;[+] detected 64bit ARM binary in memory.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+} <span style="color:#66d9ef">else</span> { <span style="color:#75715e">/* we might want to check for other errors here, too */</span>
+	lc <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> load_command <span style="color:#f92672">*</span>)((<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)mh <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> mach_header));
+	NSLog(<span style="color:#e6db74">@&#34;[+] detected 32bit ARM binary in memory.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>mh 是一个 <code>struct mach_header</code> 结构体的指针，其定义如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#75715e">/*
+</span><span style="color:#75715e"> * The 32-bit mach header appears at the very beginning of the object file for
+</span><span style="color:#75715e"> * 32-bit architectures.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">struct</span> mach_header {
+    uint32_t    magic;      <span style="color:#75715e">/* mach magic number identifier */</span>
+    cpu_type_t  cputype;    <span style="color:#75715e">/* cpu specifier */</span>
+    cpu_subtype_t   cpusubtype; <span style="color:#75715e">/* machine specifier */</span>
+    uint32_t    filetype;   <span style="color:#75715e">/* type of file */</span>
+    uint32_t    ncmds;      <span style="color:#75715e">/* number of load commands */</span>
+    uint32_t    sizeofcmds; <span style="color:#75715e">/* the size of all the load commands */</span>
+    uint32_t    flags;      <span style="color:#75715e">/* flags */</span>
+};
+
+<span style="color:#75715e">/* Constant for the magic field of the mach_header (32-bit architectures) */</span>
+<span style="color:#75715e">#define MH_MAGIC    0xfeedface  </span><span style="color:#75715e">/* the mach magic number */</span><span style="color:#75715e">
+</span><span style="color:#75715e">#define MH_CIGAM    0xcefaedfe  </span><span style="color:#75715e">/* NXSwapInt(MH_MAGIC) */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">/*
+</span><span style="color:#75715e"> * The 64-bit mach header appears at the very beginning of object files for
+</span><span style="color:#75715e"> * 64-bit architectures.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">struct</span> mach_header_64 {
+    uint32_t    magic;      <span style="color:#75715e">/* mach magic number identifier */</span>
+    cpu_type_t  cputype;    <span style="color:#75715e">/* cpu specifier */</span>
+    cpu_subtype_t   cpusubtype; <span style="color:#75715e">/* machine specifier */</span>
+    uint32_t    filetype;   <span style="color:#75715e">/* type of file */</span>
+    uint32_t    ncmds;      <span style="color:#75715e">/* number of load commands */</span>
+    uint32_t    sizeofcmds; <span style="color:#75715e">/* the size of all the load commands */</span>
+    uint32_t    flags;      <span style="color:#75715e">/* flags */</span>
+    uint32_t    reserved;   <span style="color:#75715e">/* reserved */</span>
+};
+
+<span style="color:#75715e">/* Constant for the magic field of the mach_header_64 (64-bit architectures) */</span>
+<span style="color:#75715e">#define MH_MAGIC_64 0xfeedfacf </span><span style="color:#75715e">/* the 64-bit mach magic number */</span><span style="color:#75715e">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>这里通过检查 <code>magic</code> 字段来检查当前镜像架构，之后是</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">lc <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> load_command <span style="color:#f92672">*</span>)((<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)mh <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> mach_header));
+</code></pre></td></tr></table>
+</div>
+</div><p><code>lc</code> 是一个指向 <code>struct load_command</code> 结构体的指针，如下图所示，在Mach-O 文件中，LoadCommands位于 Header 之后，所以这里以 Header 的大小作为偏移算出来 LoadCommand 的起始地址并赋值给 <code>lc</code></p>
+<p>
+        <img class="mx-auto" alt="" src="https://i.loli.net/2018/03/12/5aa678713bd28.jpg" />   
+    </p>
+<p>之后的这段有点儿长，我们从外向里看：循环遍历每一个 LoadComand，如果存在 <code>LC_ENCRYPTION_INFO</code> 这个 Command，说明当前镜像是进行过加密的，执行解密操作。否则代表当前镜像未加密，无需解密，程序结束运行。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#75715e">/* searching all load commands for an LC_ENCRYPTION_INFO load command */</span>
+<span style="color:#66d9ef">for</span> (i<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>; i<span style="color:#f92672">&lt;</span>mh<span style="color:#f92672">-&gt;</span>ncmds; i<span style="color:#f92672">++</span>) {
+	<span style="color:#75715e">/*printf(&#34;Load Command (%d): %08x\n&#34;, i, lc-&gt;cmd);*/</span>
+		
+	<span style="color:#66d9ef">if</span> (lc<span style="color:#f92672">-&gt;</span>cmd <span style="color:#f92672">==</span> LC_ENCRYPTION_INFO <span style="color:#f92672">||</span> lc<span style="color:#f92672">-&gt;</span>cmd <span style="color:#f92672">==</span> LC_ENCRYPTION_INFO_64) {
+	   ...
+	   <span style="color:#66d9ef">return</span>;
+	}
+	lc <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> load_command <span style="color:#f92672">*</span>)((<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)lc <span style="color:#f92672">+</span> lc<span style="color:#f92672">-&gt;</span>cmdsize);
+}
+NSLog(<span style="color:#e6db74">@&#34;[-] This mach-o file is not encrypted. Nothing was decrypted.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+<span style="color:#66d9ef">return</span>;
+</code></pre></td></tr></table>
+</div>
+</div><p>循环体中，在找到 <code>LC_ENCRYPTION_INFO</code> 之后，将 lc 强转为 <code>struct encryption_info_command *</code> 并赋值给 eic, 之后判断 cryptid 是否 0， 0 则表示未加密，跳出循环，程序结束。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">eic <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> encryption_info_command <span style="color:#f92672">*</span>)lc;
+
+<span style="color:#75715e">/* If this load command is present, but data is not crypted then exit */</span>
+<span style="color:#66d9ef">if</span> (eic<span style="color:#f92672">-&gt;</span>cryptid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+	<span style="color:#66d9ef">break</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>如果 cryptid 为 1，说明镜像是加密的，接着执行：
+首先计算 cryptid 距镜像开始的偏移：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc">off_cryptid <span style="color:#f92672">=</span> (off_t)((<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>)<span style="color:#f92672">&amp;</span>eic<span style="color:#f92672">-&gt;</span>cryptid <span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>)mh;
+
+
+NSLog(<span style="color:#e6db74">@&#34;[+] offset to cryptid found: @%p(from %p) = %x</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">&amp;</span>eic<span style="color:#f92672">-&gt;</span>cryptid, mh, off_cryptid);
+
+NSLog(<span style="color:#e6db74">@&#34;[+] Found encrypted data at address %08x of length %u bytes - type %u.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, eic<span style="color:#f92672">-&gt;</span>cryptoff, eic<span style="color:#f92672">-&gt;</span>cryptsize, eic<span style="color:#f92672">-&gt;</span>cryptid);
+
+NSLog(<span style="color:#e6db74">@&#34;[+] Opening %s for reading.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, rpath);
+</code></pre></td></tr></table>
+</div>
+</div><p>然后以只读模式打开镜像文件，读入镜像文件头信息:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc">fd <span style="color:#f92672">=</span> open(rpath, O_RDONLY);
+<span style="color:#66d9ef">if</span> (fd <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+    NSLog(<span style="color:#e6db74">@&#34;[-] Failed opening.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	<span style="color:#66d9ef">return</span>;
+}
+
+NSLog(<span style="color:#e6db74">@&#34;[+] Reading header</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+n <span style="color:#f92672">=</span> read(fd, (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)buffer, <span style="color:#66d9ef">sizeof</span>(buffer));
+<span style="color:#66d9ef">if</span> (n <span style="color:#f92672">!=</span> <span style="color:#66d9ef">sizeof</span>(buffer)) {
+    NSLog(<span style="color:#e6db74">@&#34;[W] Warning read only %d bytes</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, n);
+}
+
+NSLog(<span style="color:#e6db74">@&#34;[+] Detecting header type</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+fh <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> fat_header <span style="color:#f92672">*</span>)buffer;
+</code></pre></td></tr></table>
+</div>
+</div><p>这里又出现了一个新的结构体: <code>struct fat_header</code>。FAT Bianry 是 iOS/macOS 系统上特有的一种文件格式，可以同时包含多种架构的二进制镜像，其文件结构如下：
+
+        <img class="mx-auto" alt="" src="https://i.loli.net/2018/03/12/5aa6787178d22.jpg" />   
+    </p>
+<p>可以看到，FAT Binary 就是将多个 Mach-O 镜像拼到一起之后，在最前边加了个 Fat Header。
+可能你要问了，之前不是传进来一个 <code>(struct mach_header *)mh</code> 了嘛，这里为嘛还要自己读入一个呢？这里要注意了，传入的那个是 FAT Binary 中真正要读入到内存中执行的镜像的 Mach-O Header，而我们读入的，是整个 FAT Binary 的 FAT Header。FAT Header 定义如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define FAT_MAGIC	0xcafebabe
+</span><span style="color:#75715e">#define FAT_CIGAM	0xbebafeca	</span><span style="color:#75715e">/* NXSwapLong(FAT_MAGIC) */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">struct</span> fat_header {
+	uint32_t	magic;		<span style="color:#75715e">/* FAT_MAGIC or FAT_MAGIC_64 */</span>
+	uint32_t	nfat_arch;	<span style="color:#75715e">/* number of structs that follow */</span>
+};
+
+<span style="color:#66d9ef">struct</span> fat_arch {
+	cpu_type_t	cputype;	<span style="color:#75715e">/* cpu specifier (int) */</span>
+	cpu_subtype_t	cpusubtype;	<span style="color:#75715e">/* machine specifier (int) */</span>
+	uint32_t	offset;		<span style="color:#75715e">/* file offset to this object file */</span>
+	uint32_t	size;		<span style="color:#75715e">/* size of this object file */</span>
+	uint32_t	align;		<span style="color:#75715e">/* alignment as a power of 2 */</span>
+};
+</code></pre></td></tr></table>
+</div>
+</div><p>其中 <code>nfat_arch</code> 字段，表示在 fat_header 之后，包含多少个 fat_arch 结构体，也就是包含多少个 Mach-O 镜像。</p>
+<p>接着判断读出来的 FAT Header 中的 magic 字段，如果是 <code>FAT_CIGAM</code>，则表明当前镜像是一个 FAT Binary。否则判断是否是一个纯 Mach-O 镜像。如果都不是，则文件格式错误，程序结束。</p>
+<p>如果镜像是 FAT Binary，循环遍历每一个 fat_arch，如果找到一个 fat_arch 中 cputype 和 subcputype 与传入的 mach_header(mh) 一致，则表明找到了当前加载镜像在 FAT Binary 中的位置。此时设置 fileoffs = (arch-&gt;offset)。注意，此处的 cputype、subcputype 和 offset 需要使用之前定义的 swap32 宏转为大端序再进行判断。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#75715e">/* Is this a FAT file - we assume the right endianess */</span>
+<span style="color:#66d9ef">if</span> (fh<span style="color:#f92672">-&gt;</span>magic <span style="color:#f92672">==</span> FAT_CIGAM) {
+    NSLog(<span style="color:#e6db74">@&#34;[+] Executable is a FAT image - searching for right architecture</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+    arch <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> fat_arch <span style="color:#f92672">*</span>)<span style="color:#f92672">&amp;</span>fh[<span style="color:#ae81ff">1</span>];
+	 <span style="color:#66d9ef">for</span> (i<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> swap32(fh<span style="color:#f92672">-&gt;</span>nfat_arch); i<span style="color:#f92672">++</span>) {
+		<span style="color:#66d9ef">if</span> ((mh<span style="color:#f92672">-&gt;</span>cputype <span style="color:#f92672">==</span> swap32(arch<span style="color:#f92672">-&gt;</span>cputype)) <span style="color:#f92672">&amp;&amp;</span> (mh<span style="color:#f92672">-&gt;</span>cpusubtype <span style="color:#f92672">==</span> swap32(arch<span style="color:#f92672">-&gt;</span>cpusubtype))) {
+			fileoffs <span style="color:#f92672">=</span> swap32(arch<span style="color:#f92672">-&gt;</span>offset);
+			NSLog(<span style="color:#e6db74">@&#34;[+] Correct arch is at offset %u in the file</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, fileoffs);
+			<span style="color:#66d9ef">break</span>;
+		}
+		arch<span style="color:#f92672">++</span>;
+	}
+	<span style="color:#66d9ef">if</span> (fileoffs <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+		NSLog(<span style="color:#e6db74">@&#34;[-] Could not find correct arch in FAT image</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+		_exit(<span style="color:#ae81ff">1</span>);
+	}
+} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (fh<span style="color:#f92672">-&gt;</span>magic <span style="color:#f92672">==</span> MH_MAGIC <span style="color:#f92672">||</span> fh<span style="color:#f92672">-&gt;</span>magic <span style="color:#f92672">==</span> MH_MAGIC_64) {
+	NSLog(<span style="color:#e6db74">@&#34;[+] Executable is a plain MACH-O image</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+} <span style="color:#66d9ef">else</span> {
+	NSLog(<span style="color:#e6db74">@&#34;[-] Executable is of unknown type</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	<span style="color:#66d9ef">return</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>之后就是要生成解密之后的镜像了：
+首先是要生成目标文件路径，如果在 <code>Documents</code> 目录下生成失败，则换个文件名重新生成，如果还失败，报错退出。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc">NSString <span style="color:#f92672">*</span>docPath <span style="color:#f92672">=</span> NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[<span style="color:#ae81ff">0</span>];
+            
+strlcpy(npath, docPath.UTF8String, <span style="color:#66d9ef">sizeof</span>(npath));
+strlcat(npath, tmp, <span style="color:#66d9ef">sizeof</span>(npath));
+strlcat(npath, <span style="color:#e6db74">&#34;.decrypted&#34;</span>, <span style="color:#66d9ef">sizeof</span>(npath));
+strlcpy(buffer, npath, <span style="color:#66d9ef">sizeof</span>(buffer));
+
+NSLog(<span style="color:#e6db74">@&#34;[+] Opening %s for writing.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, npath);
+outfd <span style="color:#f92672">=</span> open(npath, O_RDWR<span style="color:#f92672">|</span>O_CREAT<span style="color:#f92672">|</span>O_TRUNC, <span style="color:#ae81ff">0644</span>);
+
+<span style="color:#66d9ef">if</span> (outfd <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+     <span style="color:#66d9ef">if</span> (strncmp(<span style="color:#e6db74">&#34;/private/var/mobile/Applications/&#34;</span>, rpath, <span style="color:#ae81ff">33</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+         NSLog(<span style="color:#e6db74">@&#34;[-] Failed opening. Most probably a sandbox issue. Trying something different.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+         
+     	<span style="color:#75715e">/* create new name */</span>
+     	strlcpy(npath, <span style="color:#e6db74">&#34;/private/var/mobile/Applications/&#34;</span>, <span style="color:#66d9ef">sizeof</span>(npath));
+     	tmp <span style="color:#f92672">=</span> strchr(rpath<span style="color:#f92672">+</span><span style="color:#ae81ff">33</span>, <span style="color:#e6db74">&#39;/&#39;</span>);
+     	<span style="color:#66d9ef">if</span> (tmp <span style="color:#f92672">==</span> NULL) {
+     		NSLog(<span style="color:#e6db74">@&#34;[-] Unexpected error with filename.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+     		<span style="color:#66d9ef">return</span>;
+     	}
+     	tmp<span style="color:#f92672">++</span>;
+     	<span style="color:#f92672">*</span>tmp<span style="color:#f92672">++</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+     	strlcat(npath, rpath<span style="color:#f92672">+</span><span style="color:#ae81ff">33</span>, <span style="color:#66d9ef">sizeof</span>(npath));
+     	strlcat(npath, <span style="color:#e6db74">&#34;tmp/&#34;</span>, <span style="color:#66d9ef">sizeof</span>(npath));
+     	strlcat(npath, buffer, <span style="color:#66d9ef">sizeof</span>(npath));
+     	NSLog(<span style="color:#e6db74">@&#34;[+] Opening %s for writing.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, npath);
+     	outfd <span style="color:#f92672">=</span> open(npath, O_RDWR<span style="color:#f92672">|</span>O_CREAT<span style="color:#f92672">|</span>O_TRUNC, <span style="color:#ae81ff">0644</span>);
+     }
+     <span style="color:#66d9ef">if</span> (outfd <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+         NSLog(<span style="color:#e6db74">@&#34;[-] Failed opening</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+     	<span style="color:#66d9ef">return</span>;
+     }
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>开始写入文件，首先计算加密数据在新文件中的偏移：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#75715e">/* calculate address of beginning of crypted data */</span>
+n <span style="color:#f92672">=</span> fileoffs <span style="color:#f92672">+</span> eic<span style="color:#f92672">-&gt;</span>cryptoff;
+
+restsize <span style="color:#f92672">=</span> lseek(fd, <span style="color:#ae81ff">0</span>, SEEK_END) <span style="color:#f92672">-</span> n <span style="color:#f92672">-</span> eic<span style="color:#f92672">-&gt;</span>cryptsize;
+</code></pre></td></tr></table>
+</div>
+</div><p>然后把文件指针设置到文件开头，写入 FAT Binary 的前 n 字节</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc">lseek(fd, <span style="color:#ae81ff">0</span>, SEEK_SET);
+NSLog(<span style="color:#e6db74">@&#34;[+] Copying the not encrypted start of the file</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+<span style="color:#75715e">/* first copy all the data before the encrypted data */</span>
+<span style="color:#66d9ef">while</span> (n <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) {
+	toread <span style="color:#f92672">=</span> (n <span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">sizeof</span>(buffer)) <span style="color:#f92672">?</span> <span style="color:#66d9ef">sizeof</span>(buffer) <span style="color:#f92672">:</span> n;
+	r <span style="color:#f92672">=</span> read(fd, buffer, toread);
+	<span style="color:#66d9ef">if</span> (r <span style="color:#f92672">!=</span> toread) {
+		NSLog(<span style="color:#e6db74">@&#34;[-] Error reading file</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+		<span style="color:#66d9ef">return</span>;
+	}
+	n <span style="color:#f92672">-=</span> r;
+	
+	r <span style="color:#f92672">=</span> write(outfd, buffer, toread);
+	<span style="color:#66d9ef">if</span> (r <span style="color:#f92672">!=</span> toread) {
+		NSLog(<span style="color:#e6db74">@&#34;[-] Error writing file</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+		<span style="color:#66d9ef">return</span>;
+	}
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>接着把已解密的部分写入到文件中：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#75715e">/* now write the previously encrypted data */</span>
+NSLog(<span style="color:#e6db74">@&#34;[+] Dumping the decrypted data into the file</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+r <span style="color:#f92672">=</span> write(outfd, (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)mh <span style="color:#f92672">+</span> eic<span style="color:#f92672">-&gt;</span>cryptoff, eic<span style="color:#f92672">-&gt;</span>cryptsize);
+<span style="color:#66d9ef">if</span> (r <span style="color:#f92672">!=</span> eic<span style="color:#f92672">-&gt;</span>cryptsize) {
+	NSLog(<span style="color:#e6db74">@&#34;[-] Error writing file</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	<span style="color:#66d9ef">return</span>;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>把剩下的部分（其他架构的镜像）写入到文件中：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#75715e">/* and finish with the remainder of the file */</span>
+n <span style="color:#f92672">=</span> restsize;
+lseek(fd, eic<span style="color:#f92672">-&gt;</span>cryptsize, SEEK_CUR);
+NSLog(<span style="color:#e6db74">@&#34;[+] Copying the not encrypted remainder of the file</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+<span style="color:#66d9ef">while</span> (n <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) {
+	toread <span style="color:#f92672">=</span> (n <span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">sizeof</span>(buffer)) <span style="color:#f92672">?</span> <span style="color:#66d9ef">sizeof</span>(buffer) <span style="color:#f92672">:</span> n;
+	r <span style="color:#f92672">=</span> read(fd, buffer, toread);
+	<span style="color:#66d9ef">if</span> (r <span style="color:#f92672">!=</span> toread) {
+		NSLog(<span style="color:#e6db74">@&#34;[-] Error reading file</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+		<span style="color:#66d9ef">return</span>;
+	}
+	n <span style="color:#f92672">-=</span> r;
+	
+	r <span style="color:#f92672">=</span> write(outfd, buffer, toread);
+	<span style="color:#66d9ef">if</span> (r <span style="color:#f92672">!=</span> toread) {
+		NSLog(<span style="color:#e6db74">@&#34;[-] Error writing file</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+		<span style="color:#66d9ef">return</span>;
+	}
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>最后，把已解密架构的 Mach-O header 中的 cryptid 字段置为 0， 表示未加密：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#66d9ef">if</span> (off_cryptid) {
+	uint32_t zero<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>;
+	off_cryptid<span style="color:#f92672">+=</span>fileoffs;
+	NSLog(<span style="color:#e6db74">@&#34;[+] Setting the LC_ENCRYPTION_INFO-&gt;cryptid to 0 at offset %x</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, off_cryptid);
+	<span style="color:#66d9ef">if</span> (lseek(outfd, off_cryptid, SEEK_SET) <span style="color:#f92672">!=</span> off_cryptid <span style="color:#f92672">||</span> write(outfd, <span style="color:#f92672">&amp;</span>zero, <span style="color:#ae81ff">4</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">4</span>) {
+		NSLog(<span style="color:#e6db74">@&#34;[-] Error writing cryptid value</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	}
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>关闭文件，程序退出：</p>
+<pre><code>NSLog(@&quot;[+] Closing original file\n&quot;);
+close(fd);
+NSLog(@&quot;[+] Closing dump file\n&quot;);
+close(outfd);
+
+return;
+</code></pre><p>Enjoy.</p>
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/how-dumpdecrypted-dylib-works/">https://www.tylinux.com/post/how-dumpdecrypted-dylib-works/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/create-private-cydia-repo/">搭建私有Cydia源</a></li>
+        
+        <li><a href="/post/install-tweak-with-electra-on-ios11/">iOS 11.0 - 11.1.2 越狱插件安装指南</a></li>
+        
+        <li><a href="/post/reverse-neteasemusic-001/">网易云音乐客户端逆向分析（1）</a></li>
+        
+        <li><a href="/post/run-linux-dist-on-android-with-linux-deploy/">使用 Linux deploy 在 Android 设备上运行 Linux 发行版</a></li>
+        
+        <li><a href="/post/live-under-console-on-macOS/">在macOS下高效使用命令行</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/iOS'>iOS</a></li>
+                
+                <li><a href='/tags/reverse'>reverse</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="https://www.tylinux.com/">不正经的正经程序猿 By
+            tylinux</a>
+        
+    </div>
+    <br />
+    
+</footer>
+
+
+
+<script type="text/javascript">
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [['$', '$']],
+            processEscapes: true
+        }
+    };
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/" title="也折腾博云物联辣鸡网络摄像头（上）">也折腾博云物联辣鸡网络摄像头（上）</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/" title="Android 设备上使用 Termux 安装运行 gitlab-runner">Android 设备上使用 Termux 安装运行 gitlab-runner</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/one_small_cocoapods_issue/" title="CocoaPods 小坑一例">CocoaPods 小坑一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/" title="翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/" title="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全 (2)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E5%BC%80%E5%8F%91/">开发 (3)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件 (5)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用 (4)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究 (8)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

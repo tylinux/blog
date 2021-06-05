@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
+
+    <title>macOS 10.15.1 下编译 VirtualBox 6.1.0 | 不正经的正经程序猿</title>
+    <meta property="og:title" content="macOS 10.15.1 下编译 VirtualBox 6.1.0 - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2019-12-29T18:44:33&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2019-12-29T18:44:33&#43;08:00'>
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="macOS 10.15.1 下编译 VirtualBox 6.1.0">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">macOS 10.15.1 下编译 VirtualBox 6.1.0</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年12月29日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E5%BC%80%E5%8F%91'>开发</a></span>
+            
+        </div>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>在 AMD CPU 的机器上安装黑苹果之后，能用的虚拟机软件基本只有 VirtualBox 了。虽然能用，但是性能差的让人抠脚。通常来讲，虚拟机软件会优先利用 CPU 的虚拟化特性，比如 Intel 的 <code>VT-X/VT-D</code> 以及 AMD 的 <code>SVM</code>，在硬件虚拟化不可用的时候，会使用纯软件模拟的方式运行 Guest 系统指令。macOS 截止目前，全部运行在 Intel 的 CPU 上，所以其虚拟化框架 <code>Hypervisor.framework</code>，也全部是基于 Intel 的虚拟化指令实现，并没有兼容 AMD，这也是 <code>VMWare</code> 等其他虚拟机软件无法在 AMD CPU 的黑苹果上运行的根本原因。</p>
+<p>VirtualBox 看起来没有强依赖 <code>Hypervisor.framework</code>，因此在 AMD CPU 上也可以运行。但是这糟糕的性能让我怀疑它没有使用 <code>SVM</code> 来运行虚拟机，而是纯软件模拟。为了一探究竟，我准备在 macOS 上自行编译 VirtualBox。</p>
+<h2 id="准备工作">准备工作</h2>
+<ol>
+<li>系统：macOS 10.15.1</li>
+<li>CPU：AMD Ryzen 3700X</li>
+<li>Xcode：Xcode 11.3</li>
+<li>重启至 Recovery 模式，关闭 <code>SIP</code></li>
+</ol>
+<h2 id="编译">编译</h2>
+<h3 id="准备源码">准备源码</h3>
+<p>VirtualBox 的源码在其<a href="https://www.virtualbox.org/wiki/Downloads">下载页面</a>即可看见。有两种，SVN 同步或者直接下载当前版本的 tar 包。没用过 SVN，我选择下载 tar 包，下载链接：<a href="https://download.virtualbox.org/virtualbox/6.1.0/VirtualBox-6.1.0.tar.bz2">VirtualBox-6.1.0.tar.bz2</a></p>
+<h3 id="安装编译依赖">安装编译依赖</h3>
+<p>按照官方的编译指南，编译 VirtualBox 需要 <code>libidl openssl pkg-config qt</code> 这些第三方依赖，不过指南里用的是 <code>MacPort</code>，而我使用的是 <code>Homebrew</code>，所以，安装命令有所不同：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">brew install libidl openssl pkg-config qt
+</code></pre></td></tr></table>
+</div>
+</div><p>除此之外，在编译过程中还会用到 <code>Java</code>，所以还得安装 <code>JDK</code>。可以选择从 Oarcle 的官网下载安装，或者使用 <code>jabba</code> 安装：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 安装 Jabba </span>
+curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash <span style="color:#f92672">&amp;&amp;</span> . ~/.jabba/jabba.sh
+jabba install openjdk@1.13.0
+jabba alias default openjdk@1.13.0
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="安装-mac-os-x-109-sdk">安装 Mac OS X 10.9 SDK</h3>
+<p>VirtualBox 的编译脚本是以 10.9 版本系统为目标 SDK 编写的，而且其使用的部分 IOKit 的方法已经在 10.11 版本中移除，使用新版本 SDK 无法编译通过，所以在开始编译之前需要安装一下 10.9 的 SDK。</p>
+<p>用的工具是 <code>XcodeLegacy</code>，一个开源的 shell 脚本，可以自动处理和安装低版本 Xcode 中携带的 SDK。
+除此之外，还需要一个 Xcode 6.4 版本的安装镜像，下载地址（官方地址，需要登录）：<a href="https://download.developer.apple.com/Developer_Tools/Xcode_6.4/Xcode_6.4.dmg">Xcode_6.4.dmg</a>，下载完成后，与 <code>XcodeLegacy</code> 放置在同一目录。</p>
+<p>使用方式：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">wget https://raw.githubusercontent.com/devernay/xcodelegacy/master/XcodeLegacy.sh
+chmod +x XcodeLegacy.sh
+./XcodeLegacy.sh -osx109 buildpackages
+sudo ./XcodeLegacy.sh -osx109 install
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="编译-1">编译</h3>
+<p>按照编译指南，执行 <code>./configure --disable-hardening</code> 生成编译脚本，报错如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">...
+Checking for Darwin version:   failed to determine Darwin version. (uname -r: 19.0.0)
+Check /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for details
+</code></pre></td></tr></table>
+</div>
+</div><p>从字面意思来看，就是未知的 Darwin 系统版本：19.0.0，打开 <code>configure</code> 文件，编辑 <code>check_darwinversion</code> 函数，添加对 macOS 10.15 的支持：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff"><span style="color:#75715e">@@ -2196,6 +2196,15 @@ check_darwinversion()
+</span><span style="color:#75715e"></span>   test_header &#34;Darwin version&#34;
+   darwin_ver=`uname -r`
+   case &#34;$darwin_ver&#34; in
+<span style="color:#a6e22e">+  19\.*)
+</span><span style="color:#a6e22e">+      check_xcode_sdk_path &#34;$WITH_XCODE_DIR&#34;
+</span><span style="color:#a6e22e">+      [ $? -eq 1 ] || fail
+</span><span style="color:#a6e22e">+      darwin_ver=&#34;10.15&#34; # macOS Catalina
+</span><span style="color:#a6e22e">+      sdk=$WITH_XCODE_DIR/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk
+</span><span style="color:#a6e22e">+      cnf_append &#34;VBOX_WITH_MACOSX_COMPILERS_FROM_DEVEL&#34; &#34;1&#34;
+</span><span style="color:#a6e22e">+      cnf_append &#34;VBOX_PATH_MACOSX_DEVEL_ROOT&#34; &#34;$WITH_XCODE_DIR/Developer&#34;
+</span><span style="color:#a6e22e">+      CXX_FLAGS=&#39;--std=c++11&#39;
+</span><span style="color:#a6e22e">+      ;;
+</span><span style="color:#a6e22e"></span>     17\.*)
+       check_xcode_sdk_path &#34;$WITH_XCODE_DIR&#34;
+       [ $? -eq 1 ] || fail
+</code></pre></td></tr></table>
+</div>
+</div><p>顺便添加了 <code>--std=c++11</code>，打开 C++ 11 的支持。
+再次执行 <code>./configure --disable-hardening</code>，报错如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">...
+Checking for Darwin version: Please specify --with-xcode-dir option.
+Check /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for details
+</code></pre></td></tr></table>
+</div>
+</div><p>要求使用 <code>--with-xcode-dir</code> 传入 <code>Xcode</code> 的安装路径，OK，改用新的命令 <code>./configure --disable-hardening --with-xcode-dir=/Applications/Xcode.app</code>，报错如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">...
+Checking for ssl:
+  libcrypto not found at  -lssl -lcrypto or openssl headers not found
+  Check the file /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for detailed error information.
+Check /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for details
+</code></pre></td></tr></table>
+</div>
+</div><p>找不到 <code>openssl</code>，执行 <code>./configure --help</code>，可以看到其支持通过 <code>--with-openssl-dir=</code> 指定 <code>openssl</code> 目录，OK，命令改成：<code>./configure --disable-hardening --with-xcode-dir=/Applications/Xcode.app --with-openssl-dir=/usr/local/opt/openssl@1.1/</code>，这是 Homebrew 安装的 openssl 的路径，报错如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">...
+Checking for Qt5:
+  ** Qt5 framework not found (can be disabled using --disable-qt)!
+Check /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/configure.log for details
+</code></pre></td></tr></table>
+</div>
+</div><p>找到 openssl 了，但是 qt5 没有找到，同样的，我们通过 <code>--with-qt-dir</code> 指定一下，命令：<code>./configure --disable-hardening --with-xcode-dir=/Applications/Xcode.app --with-openssl-dir=/usr/local/opt/openssl@1.1/ --with-qt-dir=/usr/local/Cellar/qt/5.14.0</code>，配置成功，日志如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">Checking for environment: Determined build machine: darwin.amd64, target machine: darwin.amd64, OK.
+Checking for kBuild: found, OK.
+Checking for Darwin version: found version 10.15 (SDK: /Applications/Xcode.app/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk), OK.
+Checking for gcc: found version 4.2.1, OK.
+Checking for Open Watcom:
+  ** Open Watcom was not found, using alternative BIOS sources!
+Checking for libIDL: found version 0.8.14, OK.
+Checking for ssl: found version OpenSSL 1.1.1d  10 Sep 2019, OK.
+Checking for libcurl: found version 7.64.1, OK.
+Checking for OpenGL support: enabled
+Checking for Qt5: found version 5.14.0, OK.
+Checking for Python support: enabled
+Checking for Java support: OK.
+
+Successfully generated &#39;/Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/AutoConfig.kmk&#39; and &#39;/Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/env.sh&#39;.
+Source &#39;/Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/env.sh&#39; once before you start to build VBox:
+
+  source /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/env.sh
+  kmk
+
+
+  +++ WARNING +++ WARNING +++ WARNING +++ WARNING +++ WARNING +++ WARNING +++
+  Hardening is disabled. Please do NOT build packages for distribution with
+  disabled hardening!
+  +++ WARNING +++ WARNING +++ WARNING +++ WARNING +++ WARNING +++ WARNING +++
+
+Enjoy!
+</code></pre></td></tr></table>
+</div>
+</div><p>按照提示，执行 <code>source /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/env.sh</code> 配置环境变量，然后执行 <code>kmk</code> 开始编译。
+报错如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">...
+The failing command:
+@yasm -f macho64 -DASM_FORMAT_MACHO -D__YASM__ -Worphan-labels -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Runtime/include/ -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/libs/liblzf-3.4/ -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/libs/libxml2-2.9.4/include/ -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/include/ -I/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/ -DVBOX -DVBOX_OSE -DVBOX_WITH_64_BITS_GUESTS -DRT_OS_DARWIN -D__DARWIN__ -DRT_ARCH_AMD64 -D__AMD64__ -D_REENTRANT -DLIBXML_STATIC -DLIBXML_STATIC_FOR_DLL -DIN_RING3 -DLOG_DISABLED -DIN_BLD_PROG -DIN_RT_R3 -DIN_ADV_BLD_PROG -DIN_RT_R3 -DLDR_WITH_NATIVE -DLDR_WITH_ELF32 -DLDR_WITH_LX -DLDR_WITH_MACHO -DLDR_WITH_PE -DRT_WITH_VBOX -DRT_NO_GIP -DRT_WITHOUT_NOCRT_WRAPPERS -DNOFILEID -DRT_WITH_ICONV_CACHE -DIPRT_WITHOUT_LDR_VERIFY -DRT_NO_GIP -DMAC_OS_X_VERSION_MIN_REQUIRED=1090 -DMAC_OS_X_VERSION_MAX_ALLOWED=1090 -l /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/obj/RuntimeBldProg/common/misc/zero.lst -o /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/obj/RuntimeBldProg/common/misc/zero.o /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Runtime/common/misc/zero.asm
+kBuild: Compiling RuntimeBldProg - /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Runtime/common/misc/zero.asm
+kmk: execvp: yasm: Bad CPU type in executable
+kmk: *** [/Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/kBuild/footer-pass2-compiling-targets.kmk:292: /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/obj/RuntimeBldProg/common/misc/zero.o] Error 127
+kmk: *** Waiting for unfinished jobs....
+...
+</code></pre></td></tr></table>
+</div>
+</div><p><code>yasm: Bad CPU type in executable</code>，看起来 <code>yasm</code> 不是一个正确的 <code>Mach-O</code> 可执行文件。执行 <code>file tools/darwin.amd64/bin/yasm</code>，结果：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">tools/darwin.amd64/bin/yasm: Mach-O executable i386
+</code></pre></td></tr></table>
+</div>
+</div><p>嗯，macOS 10.15 正式放弃对 32bit 应用的支持，所以 <code>i386</code> 架构的可执行文件已经不可执行了。执行 <code>brew install yasm</code> 安装 yasm，然后 <code>cp /usr/local/Cellar/yasm/1.3.0_2/bin/yasm tools/darwin.amd64/bin/</code> 替换掉原来的 <code>yasm</code> 可执行文件。<code>kmk</code> 继续编译：</p>
+<p>再次报错：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">...
+kBuild: iasl VBoxDD - /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Devices/PC/vbox.dsl
+kmk: execvp: /Users/tylinux/Developer/Sources/vbox/VirtualBox-6.1.0/tools/darwin.amd64/bin/iasl: Bad CPU type in executable
+kmk: *** [/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Devices/Makefile.kmk:850: /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/obj/VBoxDD/vboxaml.hex] Error 127
+kmk: *** Waiting for unfinished jobs...
+...
+</code></pre></td></tr></table>
+</div>
+</div><p>看来 <code>tools/darwin.amd64/bin/iasl</code> 也是一个 32bit 应用，不过这个 Homebrew 上没有，所以用知名大佬 <code>RehabMan</code> 的仓库中提供的 <code>iasl</code> 替代，下载地址：<a href="https://bitbucket.org/RehabMan/acpica/downloads/">acpica</a>，下载完成后同样的方式替换掉 <code>tools/darwin.amd64/bin/iasl</code>。kmk` 继续编译：</p>
+<p>报错信息：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">...
+kBuild: Generating tstVMStructSize - /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/out/darwin.amd64/release/obj/VMM/tstAsmStructsHC.h
+In file included from /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Debugger/testcase/tstVBoxDbg.cpp:22:
+In file included from /usr/local/Cellar/qt/5.14.0/Frameworks/QtWidgets.framework/Versions/5/Headers/qapplication.h:43:
+In file included from /usr/local/Cellar/qt/5.14.0/Frameworks/QtWidgets.framework/Headers/qtwidgetsglobal.h:43:
+In file included from /usr/local/Cellar/qt/5.14.0/Frameworks/QtGui.framework/Headers/qtguiglobal.h:43:
+In file included from /usr/local/Cellar/qt/5.14.0/Frameworks/QtCore.framework/Headers/qglobal.h:105:
+/usr/local/Cellar/qt/5.14.0/Frameworks/QtCore.framework/Headers/qcompilerdetection.h:558:6: error: Qt requires a C++11 compiler and yours does not seem to be that.
+#    error Qt requires a C++11 compiler and yours does not seem to be that.
+     ^
+kBuild: Compiling tstMediumLock - /Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Main/testcase/tstMediumLock.cpp
+...
+</code></pre></td></tr></table>
+</div>
+</div><p>QT5 提供的头文件，需要编译器支持 C++ 11 才能使用，编辑 <code>tools/kBuildTools/VBoxXcode62.kmk</code>，给 C++ 文件和 Objective-C++ 文件添加 <code>--std=c++</code> 选项：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff"> TOOL_VBoxXcode62_CXXOBJSUFF       ?= .o
+<span style="color:#f92672">-TOOL_VBoxXcode62_CXXFLAGS         ?=
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+TOOL_VBoxXcode62_CXXFLAGS         ?= --std=c++11
+</span><span style="color:#a6e22e"></span> TOOL_VBoxXcode62_CXXFLAGS.debug   ?= -g
+ TOOL_VBoxXcode62_CXXFLAGS.profile ?= -O2 #-g -pg
+ TOOL_VBoxXcode62_CXXFLAGS.release ?= -O2
+<span style="color:#75715e">@@ -107,7 +107,7 @@ TOOL_VBoxXcode62_OBJCINCS         ?=
+</span><span style="color:#75715e"></span> TOOL_VBoxXcode62_OBJCDEFS         ?=
+
+ TOOL_VBoxXcode62_OBJCXXOBJSUFF        ?= .o
+<span style="color:#f92672">-TOOL_VBoxXcode62_OBJCXXFLAGS          ?=
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+TOOL_VBoxXcode62_OBJCXXFLAGS          ?= --std=c++11
+</span><span style="color:#a6e22e"></span> TOOL_VBoxXcode62_OBJCXXFLAGS.debug    ?= -g
+ TOOL_VBoxXcode62_OBJCXXFLAGS.profile  ?= -O2 #-g -pg
+ TOOL_VBoxXcode62_OBJCXXFLAGS.release  ?= -O2
+</code></pre></td></tr></table>
+</div>
+</div><p><code>kmk</code> 继续编译，错误如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/src/VBox/Devices/USB/darwin/USBProxyDevice-darwin.cpp:1126:34: error: comparison between pointer and integer (&#39;CFMutableDictionaryRef&#39; (aka &#39;__CFDictionary *&#39;) and &#39;io_object_t&#39;
+      (aka &#39;unsigned int&#39;))
+    AssertReturn(RefMatchingDict != IO_OBJECT_NULL, VERR_OPEN_FAILED);
+                 ~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~~~
+/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/include/iprt/assert.h:390:26: note: expanded from macro &#39;AssertReturn&#39;
+        if (RT_LIKELY(!!(expr))) \
+                         ^~~~
+/Volumes/macOSData/Developer/Sources/vbox/VirtualBox-6.1.0/include/iprt/cdefs.h:1778:53: note: expanded from macro &#39;RT_LIKELY&#39;
+#  define RT_LIKELY(expr)       __builtin_expect(!!(expr), 1)
+                                                    ^~~~
+1 error generated.
+</code></pre></td></tr></table>
+</div>
+</div><p>指针类型和整型做比较，报错了，改成这样：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff">     CFMutableDictionaryRef RefMatchingDict = IOServiceMatching(kIOUSBDeviceClassName);
+<span style="color:#f92672">-    AssertReturn(RefMatchingDict != IO_OBJECT_NULL, VERR_OPEN_FAILED);
+</span><span style="color:#f92672"></span><span style="color:#a6e22e">+    AssertReturn(RefMatchingDict, VERR_OPEN_FAILED);
+</span><span style="color:#a6e22e"></span>
+     uint64_t u64SessionId = 0;
+</code></pre></td></tr></table>
+</div>
+</div><p><code>kmk</code>，编译成功。</p>
+<h2 id="运行">运行</h2>
+<p>编译结果在 <code>out/darwin.amd64/release/dist</code> 目录下，<code>VirtualBox.app</code> 是 App，<code>*.kext</code> 则是 VirtualBox 需要的内核扩展。执行 <code>loadall.sh</code> 加载内核扩展，报错如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">...
+Code Signing Failure: not code signed
+Disabling KextAudit: SIP is off
+(kernel) kxld[org.virtualbox.kext.VBoxDrv]: The following symbols are unresolved for this kext:
+(kernel) kxld[org.virtualbox.kext.VBoxDrv]:     _g_abSUPBuildCert
+(kernel) kxld[org.virtualbox.kext.VBoxDrv]:     _g_cbSUPBuildCert
+(kernel) Can&#39;t load kext org.virtualbox.kext.VBoxDrv - link failed.
+...
+</code></pre></td></tr></table>
+</div>
+</div><p>嗯，我们的编译生成的 kext 没有代码签名，被拒绝加载了。</p>
+<p>解决方案：</p>
+<ol>
+<li>
+<p>按照 <a href="https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html">https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html</a> 所述，生成自签证书。</p>
+</li>
+<li>
+<p>在 VirtualBox 源码目录下新建 <code>LocalConfig.kmk</code>，文件内容：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">VBOX_SIGNING_MODE = test
+VBOX_CERTIFICATE_SUBJECT_NAME = My Code Signing Cert
+</code></pre></td></tr></table>
+</div>
+</div><p>其中，<code>VBOX_CERTIFICATE_SUBJECT_NAME</code> 就是你在生成自签证书是起的名字，重新 <code>kmk</code>，编译成功。</p>
+</li>
+</ol>
+<h2 id="参考链接">参考链接</h2>
+<ol>
+<li><a href="https://www.virtualbox.org/wiki/Mac%20OS%20X%20build%20instructions">Mac OS X build instructions</a></li>
+<li><a href="https://forums.virtualbox.org/viewtopic.php?f=8&amp;t=92989">My experience building VirtualBox from Subversion on Mojave</a></li>
+<li><a href="https://github.com/devernay/xcodelegacy">xcodelegacy</a></li>
+<li><a href="https://github.com/shyiko/jabba">jabba</a></li>
+</ol>
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/">https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/hackintosh-with-amd-ryzen-3700x/">喜提新开(you)发(xi)机</a></li>
+        
+        <li><a href="/post/hackintosh-with-amd-ryzen-1700/">AMD Ryzen 1700 也吃黑苹果</a></li>
+        
+        <li><a href="/post/develop-mcs51-on-macOS/">macOS 下开发 51 单片机应用</a></li>
+        
+        <li><a href="/post/fix-a-react-native-crash-on-mutex/">React Native 疑难 Crash 一例</a></li>
+        
+        <li><a href="/post/pwnable-0x01-orw/">pwnable.tw 0x1 orw writeup</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/hackintosh'>hackintosh</a></li>
+                
+                <li><a href='/tags/ryzen'>ryzen</a></li>
+                
+                <li><a href='/tags/virtualbox'>virtualbox</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="https://www.tylinux.com/">不正经的正经程序猿 By
+            tylinux</a>
+        
+    </div>
+    <br />
+    
+</footer>
+
+
+
+<script type="text/javascript">
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [['$', '$']],
+            processEscapes: true
+        }
+    };
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/" title="也折腾博云物联辣鸡网络摄像头（上）">也折腾博云物联辣鸡网络摄像头（上）</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/" title="Android 设备上使用 Termux 安装运行 gitlab-runner">Android 设备上使用 Termux 安装运行 gitlab-runner</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/one_small_cocoapods_issue/" title="CocoaPods 小坑一例">CocoaPods 小坑一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/" title="翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/" title="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全 (2)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E5%BC%80%E5%8F%91/">开发 (3)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件 (5)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用 (4)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究 (8)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

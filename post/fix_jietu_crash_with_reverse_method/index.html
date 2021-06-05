@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
+
+    <title>利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题 | 不正经的正经程序猿</title>
+    <meta property="og:title" content="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题 - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2020-12-07T19:14:09&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2020-12-07T19:14:09&#43;08:00'>
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2020年12月7日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6'>逆向研究</a></span>
+            
+        </div>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>腾讯开发的截图工具：<a href="https://apps.apple.com/us/app/%E6%88%AA%E5%9B%BE-jietu-%E5%BF%AB%E9%80%9F%E6%A0%87%E6%B3%A8-%E4%BE%BF%E6%8D%B7%E5%88%86%E4%BA%AB%E7%9A%84%E6%88%AA%E5%B1%8F%E5%B7%A5%E5%85%B7/id1059334054?mt=12">Jietu</a> 一直是我在 macOS 下最喜欢的截图工具，不过在升级到 macOS 11 Big Sur 之后就 GG 了，区域截图的时候会崩溃。这 App 上次更新是在 3 年前，指望腾讯修复希望不大，正好这俩天有空，尝试自己定位解决一下问题。</p>
+<h2 id="定位崩溃原因">定位崩溃原因</h2>
+<p>打开 <code>Console.app</code>，过滤 <code>Jietu</code> 进程，触发崩溃，日志如下:</p>
+<pre><code>2020-12-02 19:39:44.956 Jietu[15361:195786] *** Terminating app due to uncaught exception 'NSInvalidArgumentException', reason: 'NSConcreteAttributedString initWithString:: nil value'
+*** First throw call stack:
+(
+0   CoreFoundation                      0x00007fff204936af __exceptionPreprocess + 242
+1   libobjc.A.dylib                     0x00007fff201cb3c9 objc_exception_throw + 48
+2   Foundation                          0x00007fff211aed5b -[NSRLEArray init] + 0
+3   Foundation                          0x00007fff211aeb2f -[NSConcreteAttributedString initWithString:attributes:] + 27
+4   JietuFramework                      0x0000000105ef2920 -[JTCaptureSizeInfoSubView drawRect:] + 228
+5   ???                                 0x0000000106285613 0x0 + 4398274067
+6   AppKit                              0x00007fff234c8709 -[NSView _recursive:displayRectIgnoringOpacity:inContext:stopAtLayerBackedViews:] + 2115
+7   AppKit                              0x00007fff234c8a9a -[NSView _recursive:displayRectIgnoringOpacity:inContext:stopAtLayerBackedViews:] + 3028
+8   AppKit                              0x00007fff22da0c29 -[NSView(NSLayerKitGlue) _drawViewBackingLayer:inContext:drawingHandler:] + 967
+9   QuartzCore                          0x00007fff26bc3051 CABackingStoreUpdate_ + 190
+10  QuartzCore                          0x00007fff26c27441 ___ZN2CA5Layer8display_Ev_block_invoke + 53
+11  QuartzCore                          0x00007fff26bc25a4 -[CALayer _display] + 2183
+12  AppKit                              0x00007fff22da07a1 -[_NSBackingLayer display] + 475
+13  AppKit                              0x00007fff22d0b778 -[_NSViewBackingLayer display] + 555
+14  QuartzCore                          0x00007fff26bc15b8 _ZN2CA5Layer17display_if_neededEPNS_11TransactionE + 874
+15  QuartzCore                          0x00007fff26cfb373 _ZN2CA7Context18commit_transactionEPNS_11TransactionEdPd + 517
+16  QuartzCore                          0x00007fff26b9ef91 _ZN2CA11Transaction6commitEv + 783
+17  AppKit                              0x00007fff22db59cb __62+[CATransaction(NSCATransaction) NS_setFlushesWithDisplayLink]_block_invoke + 285
+18  AppKit                              0x00007fff234ffd0e ___NSRunLoopObserverCreateWithHandler_block_invoke + 41
+19  CoreFoundation                      0x00007fff20418d9d __CFRUNLOOP_IS_CALLING_OUT_TO_AN_OBSERVER_CALLBACK_FUNCTION__ + 23
+20  CoreFoundation                      0x00007fff20418c2d __CFRunLoopDoObservers + 549
+21  CoreFoundation                      0x00007fff204180dd __CFRunLoopRun + 838
+22  CoreFoundation                      0x00007fff204176be CFRunLoopRunSpecific + 563
+23  HIToolbox                           0x00007fff28683fd0 RunCurrentEventLoopInMode + 292
+24  HIToolbox                           0x00007fff28683dcc ReceiveNextEventCommon + 709
+25  HIToolbox                           0x00007fff28683aef _BlockUntilNextEventMatchingListInModeWithFilter + 64
+26  AppKit                              0x00007fff22c30f85 _DPSNextEvent + 883
+27  AppKit                              0x00007fff22c2f74b -[NSApplication(NSEvent) _nextEventMatchingEventMask:untilDate:inMode:dequeue:] + 1366
+28  AppKit                              0x00007fff22c21bda -[NSApplication run] + 586
+29  AppKit                              0x00007fff22bf5f31 NSApplicationMain + 816
+30  libdyld.dylib                       0x00007fff2033c631 start + 1
+)
+libc++abi.dylib: terminating with uncaught exception of type NSException
+</code></pre><p>看日志，崩溃原因很简单，创建 <code>NSAttributedString</code> 的时候传入了 <code>nil</code>。看堆栈是在 <code>JietuFramework</code> 的 <code>-[JTCaptureSizeInfoSubView drawRect:] + 228</code> 中调用的。拖到 IDA 中，F5 一下：</p>
+<p>
+        <img class="mx-auto" alt="-w859" src="https://i.loli.net/2020/12/07/HqslQXhJ6DLwCUV.jpg" />   
+    </p>
+<p>崩溃时，伪代码中的 <code>v5</code> 为 nil，导致崩溃，而 <code>v5</code> 指向的则是 <code>JTCaptureSizeInfoSubView</code> 的 <code>sizeInfoStr</code> 属性。</p>
+<p>在另一台 10.15.7 的 macOS  设备上，通过 <code>Frida</code> 打印日志，得知 <code>sizeInfoStr</code> 的值是类似 <code>1920 * 1080</code> 这样的字符串。简单写个 <code>Frida</code> 脚本，判断在 <code>self.sizeInfoStr</code> 为 <code>nil</code> 是，返回 <code>1920 * 1080</code>，测试是否崩溃。脚本如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">ObjC</span>.<span style="color:#a6e22e">available</span>) {
+  <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#39;\n[*] Starting Hooking&#39;</span>);
+
+  <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">func</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">ObjC</span>.<span style="color:#a6e22e">classes</span>.<span style="color:#a6e22e">JTCaptureSizeInfoSubView</span>[<span style="color:#e6db74">&#39;- sizeInfoStr&#39;</span>]
+
+  <span style="color:#a6e22e">Interceptor</span>.<span style="color:#a6e22e">attach</span>(<span style="color:#a6e22e">func</span>.<span style="color:#a6e22e">implementation</span>, {
+    <span style="color:#a6e22e">onEnter</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">args</span>) {
+    },
+    
+    <span style="color:#a6e22e">onLeave</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">returnValue</span>) {
+      <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ret</span> <span style="color:#f92672">=</span> (<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">ObjC</span>.Object(<span style="color:#a6e22e">returnValue</span>)).<span style="color:#a6e22e">toString</span>();
+      <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">ret</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;nil&#39;</span>) {
+        <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">newStr</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">ObjC</span>.<span style="color:#a6e22e">classes</span>.<span style="color:#a6e22e">NSString</span>.<span style="color:#a6e22e">stringWithString_</span>(<span style="color:#e6db74">&#39;1920 * 1080&#39;</span>);
+        <span style="color:#a6e22e">returnValue</span>.<span style="color:#a6e22e">replace</span>(<span style="color:#a6e22e">newStr</span>);
+      }
+    }
+  });
+  <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#39;\n[*] Starting Intercepting&#39;</span>);
+} <span style="color:#66d9ef">else</span> {
+  <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#39;Objective-C Runtime is not available!&#39;</span>);
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>执行 <code>frida -f /Applications/Jietu.app/Contents/MacOS/Jietu -l ret.js</code>，测试崩溃解决。</p>
+<h2 id="patch-崩溃">patch 崩溃</h2>
+<p>如果要日常使用肯定不能这样 frida 加载个脚本去进行修复，最好是能直接对原本的二进制文件进行修改，傻瓜化修复此问题。因此，我们需要使用二进制 hook 的方法，替换掉有问题的方法实现，解决此崩溃。</p>
+<p>在 iOS 越狱设备中，可以很简单的利用 theos 生成基于 <code>Cydia Substrate</code> 的 hook 代码，这里我不准备引入这么重的框架，因为出问题的地方是个 OC 方法，可以通过 <code>method swizzling</code> 交换方法实现很简单的实现 hook。但，这个代码我也不准备手写，像大家介绍一个只有一个文件的 hook 方案：<a href="https://github.com/rpetrich/CaptainHook">CaptainHook</a>。它仅有一个头文件，通过宏和 OC runtime 相关特性实现运行时的方法替换。使用 CaptainHook 实现的修复代码如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#75715e">#import &#34;CaptainHook.h&#34;
+</span><span style="color:#75715e">#import &lt;Foundation/Foundation.h&gt;
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// 声明我们准备 hook 的类
+</span><span style="color:#75715e"></span>CHDeclareClass(JTCaptureSizeInfoSubView);
+
+<span style="color:#75715e">// 构造一个新的方法, 参数含义依次为: 参数个数, 返回值类型, 类名, 方法名, [参数类型, ...]
+</span><span style="color:#75715e"></span>CHMethod(<span style="color:#ae81ff">0</span>, NSString <span style="color:#f92672">*</span>, JTCaptureSizeInfoSubView, sizeInfoStr) {
+    <span style="color:#75715e">// 获取原方法返回
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span>ret <span style="color:#f92672">=</span> CHSuper(<span style="color:#ae81ff">0</span>, JTCaptureSizeInfoSubView, sizeInfoStr);
+    <span style="color:#66d9ef">return</span> ret <span style="color:#f92672">?:</span> <span style="color:#e6db74">@&#34;1920 * 1080&#34;</span>;
+}
+
+<span style="color:#75715e">// 在 runtime 初始化时调换实现
+</span><span style="color:#75715e"></span>CHConstructor {
+    NSLog(<span style="color:#e6db74">@&#34;HOOK Enabled!&#34;</span>);
+    CHLoadLateClass(JTCaptureSizeInfoSubView);
+    CHHook(<span style="color:#ae81ff">0</span>, JTCaptureSizeInfoSubView, sizeInfoStr);
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>将上述代码保存为 .m 文件，与 <code>CaptainHook.h</code> 一同放到一个 framework 工程中，编译生成我们的目标 framework。</p>
+<p>接下来，我们想办法让 App 在启动时加载我们的 framework，让我们的修改生效。</p>
+<p>macOS 的加载器支持从 <code>DYLD_INSERT_LIBRARIES</code> 环境变量中加载动态库，所以我们可以这样简单测试一下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">DYLD_INSERT_LIBRARIES<span style="color:#f92672">=</span>/path/to/your/framework/Versions/A/framework_name /Applications/Jietu.app/Contents/MacOS/Jietu
+</code></pre></td></tr></table>
+</div>
+</div><p>不出意外的话，就可以在终端下看到我们打印的 <code>HOOK Enabled!</code> 字样，崩溃修复。</p>
+<p>下面我们来让 Jietu 自行加载我们的 framework。</p>
+<p>在 Mach-O 文件格式中，在文件头的位置存着一些被称作 <code>Load Command</code> 的字段，用于声明在 App 启动时需要加载的动态库路径，可以使用 <code>otool -L</code> 打印出来，比如：</p>
+<pre><code>Jietu:
+	/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices (compatibility version 1.0.0, current version 775.8.2)
+	/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 57740.20.22)
+	/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/SystemConfiguration (compatibility version 1.0.0, current version 888.20.5)
+	/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices (compatibility version 1.0.0, current version 48.0.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 307.4.0)
+	@rpath/JietuFramework.framework/Versions/A/JietuFramework (compatibility version 1.0.0, current version 1.0.0)
+	@rpath/ZipArchive.framework/Versions/A/ZipArchive (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libicucore.A.dylib (compatibility version 1.0.0, current version 57.1.0)
+	@rpath/JTRecordSDK.framework/Versions/A/JTRecordSDK (compatibility version 1.0.0, current version 1.0.0)
+	@rpath/AFNetworking.framework/Versions/A/AFNetworking (compatibility version 1.0.0, current version 1.0.0)
+	@rpath/CocoaLumberjack.framework/Versions/A/CocoaLumberjack (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/CoreLocation.framework/Versions/A/CoreLocation (compatibility version 1.0.0, current version 2100.3.14)
+	/System/Library/Frameworks/ServiceManagement.framework/Versions/A/ServiceManagement (compatibility version 1.0.0, current version 972.20.3)
+	@rpath/MASShortcut.framework/Versions/A/MASShortcut (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.8)
+	/System/Library/Frameworks/Cocoa.framework/Versions/A/Cocoa (compatibility version 1.0.0, current version 22.0.0)
+	/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 1349.0.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1238.0.0)
+	/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 1504.59.0)
+	/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1348.15.0)
+	/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics (compatibility version 64.0.0, current version 1070.6.0)
+	/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)
+	/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore (compatibility version 1.2.0, current version 1.11.0)
+</code></pre><p>所以我们只要想办法在这里插入我们修复 framework 的 Load Command 就可以让它在启动时自动加载修复了。这里使用的工具是：<a href="https://github.com/Tyilo/insert_dylib">insert_dylib</a>，虽然 Xcode 自带的 <code>install_name_tool</code> 也能干类似的事情，不过需要先移除签名，insert_dylib 会自动干这个事情，我就直接用它了。把我们的 framework 复制到 <code>/Applications/Jietu.app/Contents/Frameworks</code> 下，执行如下命令添加 Load Command:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">insert_dylib @rpath/your.framework/Versions/A/framework_name /Applications/Jietu.app/Contents/MacOS/Jietu
+</code></pre></td></tr></table>
+</div>
+</div><p>这里解释下命令中的 <code>@rpath</code> 是硬编码在二进制文件中的运行时搜索路径的代称，在这里就值的是 App 目录中的 <code>Contents/Frameworks</code> 目录，这样不管这个应用复制到那里，总能通过相对路径找到 framework 文件。</p>
+<p>到此，修复工作就暂时告一段落，我把相关代码托管到了 github 上，可以直接取用： <a href="https://github.com/tylinux/JTFix">tylinux/JTFix</a></p>
+<p>enjoy~</p>
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/">https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/reverse-neteasemusic-001/">网易云音乐客户端逆向分析（1）</a></li>
+        
+        <li><a href="/post/live-under-console-on-macOS/">在macOS下高效使用命令行</a></li>
+        
+        <li><a href="/post/downgrade-iOS-13-3-to-13-2-3/">iPhone SE 降级 iOS 13.2.3</a></li>
+        
+        <li><a href="/post/build-virtualbox-on-macOS-10.15/">macOS 10.15.1 下编译 VirtualBox 6.1.0</a></li>
+        
+        <li><a href="/post/hackintosh-with-amd-ryzen-3700x/">喜提新开(you)发(xi)机</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/macOS'>macOS</a></li>
+                
+                <li><a href='/tags/Reverse'>Reverse</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="https://www.tylinux.com/">不正经的正经程序猿 By
+            tylinux</a>
+        
+    </div>
+    <br />
+    
+</footer>
+
+
+
+<script type="text/javascript">
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [['$', '$']],
+            processEscapes: true
+        }
+    };
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/" title="也折腾博云物联辣鸡网络摄像头（上）">也折腾博云物联辣鸡网络摄像头（上）</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/" title="Android 设备上使用 Termux 安装运行 gitlab-runner">Android 设备上使用 Termux 安装运行 gitlab-runner</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/one_small_cocoapods_issue/" title="CocoaPods 小坑一例">CocoaPods 小坑一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/" title="翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/" title="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全 (2)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E5%BC%80%E5%8F%91/">开发 (3)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件 (5)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用 (4)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究 (8)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

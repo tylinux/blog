@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>arm on 不正经的正经程序猿</title>
+    <link>https://www.tylinux.com/tags/arm/</link>
+    <description>Recent content in arm on 不正经的正经程序猿</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh_CN</language>
+    <lastBuildDate>Wed, 19 May 2021 23:39:17 +0800</lastBuildDate><atom:link href="https://www.tylinux.com/tags/arm/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Android 设备上使用 Termux 安装运行 gitlab-runner</title>
+      <link>https://www.tylinux.com/post/install_gitlab_runner_on_android/</link>
+      <pubDate>Wed, 19 May 2021 23:39:17 +0800</pubDate>
+      
+      <guid>https://www.tylinux.com/post/install_gitlab_runner_on_android/</guid>
+      <description>安装 Termux  Termux: https://f-droid.org/packages/com.termux/ Termux-boot: https://f-droid.org/packages/com.termux.boot/  换源 Termux 默认软件源国内链接可能不顺畅，可以改用清华的源，如下：
+1 2  # 执行如下命令更换三个源 termux-change-repo   安装并启用 sshd 该步骤主要是为了远程操作，避免在手机上大量输入。
+1 2 3 4 5 6 7 8 9 10 11  # 安装 openssh apt install openssh termux-services # 启动 sshd sshd # 修改密码 passwd # 获取用户名 whoami   完成后执行 exit 关闭会话，重新打开 APP 后执行：
+1 2 3  sv-enable sshd sv up sshd   使能 sshd 服务。</description>
+    </item>
+    
+    <item>
+      <title>使用 Linux deploy 在 Android 设备上运行 Linux 发行版</title>
+      <link>https://www.tylinux.com/post/run-linux-dist-on-android-with-linux-deploy/</link>
+      <pubDate>Mon, 22 Jan 2018 18:14:48 +0000</pubDate>
+      
+      <guid>https://www.tylinux.com/post/run-linux-dist-on-android-with-linux-deploy/</guid>
+      <description>&lt;p&gt;在学习 ARM 汇编的时候，需要在本地搭建 arm 环境，当时所用的方法是使用 QEMU 模拟树莓派。然而由于 QEMU 对树莓派支持有限，性能堪忧。昨天翻出 2013 时候淘的一部 LG GPro，突然想到可以在 Android 设备上跑个 Linux 发行版来解决这个问题。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
+
+    <title>在macOS下高效使用命令行 | 不正经的正经程序猿</title>
+    <meta property="og:title" content="在macOS下高效使用命令行 - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2016-08-31T00:46:08&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2016-08-31T00:46:08&#43;08:00'>
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="在macOS下高效使用命令行">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/live-under-console-on-macOS/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">在macOS下高效使用命令行</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2016年8月31日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8'>系统应用</a></span>
+            
+        </div>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <p>相对于Windows和Linux，macOS最吸引人的地方在于精致的图形界面与强大的命令行的完美结合。熟悉macOS历史的同学应该知道，macOS的内核衍生自FreeBSD，属于正统Unix。因此，macOS下的各种终端命令的参数格式都是BSD式，对于习惯了Linux参数格式的我来讲有些许不适用，好在有Homebrew的加持，可以很方便的改回到Linux方式：</p>
+<h2 id="使用linux式命令">使用Linux式命令</h2>
+<p>Linux下的标准命令包含在由GNU提供的coreutils包中，在Mac下可以通过Homebrew安装coreutils包来获取支持。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">brew install coreutils
+</code></pre></td></tr></table>
+</div>
+</div><p>安装之后，默认coreutils的命令都加上了前缀<code>g</code>，比如要使用coreutils提供的<code>ls</code>命令，需要使用<code>gls</code>来执行。当然，也可以像我一样，把coreutils的命令设为默认，取代macOS提供的命令。在你的shell配置文件：bash是<code>~/.bashrc</code>，zsh是<code>~/.zshrc</code>中追加如下两条配置：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># 把coreutils的bin目录放在PATH前边，这样就优先执行coreutils的命令</span>
+PATH<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/usr/local/opt/coreutils/libexec/gnubin:</span>$PATH<span style="color:#e6db74">&#34;</span>
+<span style="color:#75715e"># 优先调用coreutls的man信息</span>
+MANPATH<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/usr/local/opt/coreutils/libexec/gnuman:</span>$MANPATH<span style="color:#e6db74">&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>coreutils的<code>ls</code>命令默认没有颜色，同样在配置文件中加入下边这行：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">alias ls<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ls --color=tty&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="修改homebrew源">修改Homebrew源</h2>
+<p>由于众所周知的原因，西方资本主义国家的大部分网站或被屏蔽、或被干扰，无法正常流利地为国内用户服务。而Homebrew的两个主要部分：git repo (github)和binary(bintray)不幸都在其中。为了加快Homebrew的下载速度，除了搬梯子架代理之外，我们还可以使用国内良心组织/个人提供国内镜像。比如中科大LUG（Linux User Group），使用如下命令修改：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># 详见https://lug.ustc.edu.cn/wiki/mirrors/help/brew.git</span>
+<span style="color:#75715e"># 替换homebrew默认源</span>
+cd /usr/local/Homebrew
+git remote set-url origin git://mirrors.ustc.edu.cn/brew.git
+
+<span style="color:#75715e"># 详见https://lug.ustc.edu.cn/wiki/mirrors/help/homebrew-bottles</span>
+<span style="color:#75715e"># 替换homebrew bottles默认源</span>
+echo <span style="color:#e6db74">&#39;export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles&#39;</span> &gt;&gt; ~/.bashrc
+</code></pre></td></tr></table>
+</div>
+</div><p>还有其他组织/个人，比如<a href="http://ban.ninja/">搬</a>，<a href="http://homebrew-mirror-china.tycdn.net/">tycdn</a>等等，修改方式与中科大源一致，只是地址不一样。</p>
+<h2 id="让终端程序使用代理">让终端程序使用代理</h2>
+<p>在Mac下，可以在<code>设置</code>-&gt;<code>网络</code>中方便地为应用程序设置网络代理，包括<code>HTTP</code>、<code>HTTPS</code>、<code>Socks</code>等各种协议。但是这些都是针对图形界面应用的，对于终端程序，这些设置并不起作用，要让终端程序通过代理链接网络，还需要进行其他设置。</p>
+<ul>
+<li>
+<p>环境变量</p>
+<p>对于支持从环境变量中读取代理配置的程序，比如wget,git等，可以通过设置<code>http_proxy</code>或者<code>https_proxy</code>环境变量使代理生效。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">export http_proxy<span style="color:#f92672">=</span>http://ip:port
+wget http://www.baidu.com
+</code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>proxychains</p>
+<p>对于不支持环境变量配置代理的应用，或者代理类型不是http/https，比如shadowsocks、GoAgent使用的socks5协议，那么上边的方法就无效了。对于这种情况，可以使用<code>proxychains</code>命令来使代理生效。</p>
+<p>首先通过Homebrew安装<code>proxychains-ng</code>包：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">brew install proxychains-ng
+</code></pre></td></tr></table>
+</div>
+</div><p>之后需要对proxychain进行配置，proxychains的配置文件路径是<code>/usr/local/etc/proxychains.conf</code>。打开配置文件，注释掉最后一行的默认配置，在之后按照<code>协议 IP 端口 用户名(可选) 密码(可选)</code>的格式添加自己的代理服务器配置。示例如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># ProxyList format</span>
+<span style="color:#75715e">#       type  ip  port [user pass]</span>
+<span style="color:#75715e">#       (values separated by &#39;tab&#39; or &#39;blank&#39;)</span>
+<span style="color:#75715e">#</span>
+<span style="color:#75715e">#       only numeric ipv4 addresses are valid</span>
+<span style="color:#75715e">#</span>
+<span style="color:#75715e">#</span>
+<span style="color:#75715e">#        Examples:</span>
+<span style="color:#75715e">#</span>
+<span style="color:#75715e">#            	socks5	192.168.67.78	1080	lamer	secret</span>
+<span style="color:#75715e">#		http	192.168.89.3	8080	justu	hidden</span>
+<span style="color:#75715e">#	 	socks4	192.168.1.49	1080</span>
+<span style="color:#75715e">#	        http	192.168.39.93	8080</span>
+<span style="color:#75715e">#</span>
+<span style="color:#75715e">#</span>
+<span style="color:#75715e">#       proxy types: http, socks4, socks5</span>
+<span style="color:#75715e">#        ( auth types supported: &#34;basic&#34;-http  &#34;user/pass&#34;-socks )</span>
+<span style="color:#75715e">#</span>
+<span style="color:#f92672">[</span>ProxyList<span style="color:#f92672">]</span>
+<span style="color:#75715e"># add proxy here ...</span>
+<span style="color:#75715e"># meanwile</span>
+<span style="color:#75715e"># defaults set to &#34;tor&#34;</span>
+<span style="color:#75715e">#socks4 	127.0.0.1 9050</span>
+socks5 127.0.0.1 <span style="color:#ae81ff">1080</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>proxychains本身支持<code>代理链</code>，顾名思义就是通过代理A连接代理B再连接代理C&hellip;连接目标服务器，如需使用代理链，只需要按次序将代理服务器信息填写到配置文件中既可。</p>
+</li>
+<li>
+<p>其他程序</p>
+<p>有些程序自身支持代理，比如curl和git等。这里针对这些程序介绍一下它们的代理设置方法。</p>
+<ul>
+<li>
+<p>curl</p>
+<p>curl支持通过配置文件设置代理的方法，打开curl配置文件（<code>~/.curlrc</code>），在其中写入：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">proxy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;protocal://ip:port&#34;</span>
+<span style="color:#75715e"># protocal可以是http、https、socks4/5</span>
+</code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>git</p>
+<p>git也支持通过将代理信息写入配置文件的方式设置代理：</p>
+</li>
+</ul>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># git支持http、https、socks代理</span>
+git config --global http.proxy <span style="color:#e6db74">&#34;protocal://ip:port&#34;</span>
+git config --global https.proxy <span style="color:#e6db74">&#34;protocal://ip:port&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>或者直接打开git配置文件（<code>~/.gitconfig</code>），写入如下配置：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>http<span style="color:#f92672">]</span>
+ proxy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;protocal://ip:port&#34;</span>
+ <span style="color:#f92672">[</span>https<span style="color:#f92672">]</span>
+ proxy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;protocal://ip:port&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/live-under-console-on-macOS/">https://www.tylinux.com/post/live-under-console-on-macOS/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/about/"></a></li>
+        
+        <li><a href="/archives/">归档</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/macOS'>macOS</a></li>
+                
+                <li><a href='/tags/Console'>Console</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="https://www.tylinux.com/">不正经的正经程序猿 By
+            tylinux</a>
+        
+    </div>
+    <br />
+    
+</footer>
+
+
+
+<script type="text/javascript">
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [['$', '$']],
+            processEscapes: true
+        }
+    };
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/" title="也折腾博云物联辣鸡网络摄像头（上）">也折腾博云物联辣鸡网络摄像头（上）</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/" title="Android 设备上使用 Termux 安装运行 gitlab-runner">Android 设备上使用 Termux 安装运行 gitlab-runner</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/one_small_cocoapods_issue/" title="CocoaPods 小坑一例">CocoaPods 小坑一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/" title="翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/" title="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全 (2)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E5%BC%80%E5%8F%91/">开发 (3)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件 (5)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用 (4)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究 (8)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

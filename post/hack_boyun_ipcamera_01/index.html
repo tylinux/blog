@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
+
+    <title>也折腾博云物联辣鸡网络摄像头（上） | 不正经的正经程序猿</title>
+    <meta property="og:title" content="也折腾博云物联辣鸡网络摄像头（上） - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2021-06-03T00:54:26&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2021-06-03T00:54:26&#43;08:00'>
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="也折腾博云物联辣鸡网络摄像头（上）">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/hack_boyun_ipcamera_01/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">也折腾博云物联辣鸡网络摄像头（上）</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2021年6月3日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E7%A1%AC%E4%BB%B6'>硬件</a></span>
+            
+        </div>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <blockquote>
+<p>相关资源文件可至：https://github.com/tylinux/HackBoyunIPCamera 下载</p>
+</blockquote>
+<p>前几天看了 <a href="https://www.mydigit.cn/forum.php?mod=viewthread&amp;tid=255164">用垃圾网络摄像头构建的家庭直播系统</a> 这篇帖子，也想试着玩儿玩儿网络摄像头，就买了帖子里提到的 38 俩包邮的博云物联摄像头。</p>
+<p>到手拆机：</p>
+<p>
+        <img class="mx-auto" alt="IMG_0962" src="https://i.loli.net/2021/06/03/ghirFEwB4uPUs7p.jpg" />   
+    </p>
+<p>海思 HI3518CV100 的主控芯片
+
+        <img class="mx-auto" alt="IMG_0963" src="https://i.loli.net/2021/06/03/EIW3bNsHSCxKmuP.jpg" />   
+    </p>
+<p>瑞昱 RTL8188ETV WiFi 模块
+
+        <img class="mx-auto" alt="" src="https://i.loli.net/2021/06/03/1SRh3ouyecbUHv7.jpg" />   
+    </p>
+<p>开搞。</p>
+<h2 id="ttl">TTL</h2>
+<p>第一步是先找到 TTL 接口，这样就能观察启动过程，刷完系统也好辨别是否工作正常，是哪里出了问题。
+思路如下：</p>
+<ul>
+<li>找明确标记为 RX, TX 的测试点</li>
+<li>找比较可疑的两个、三个、或者四个并排的测试点</li>
+<li>终极方案：把主控吹下来，按照 datasheet 里标记的 RX，TX 引脚找对应的测试点</li>
+</ul>
+<p>很幸运，板子背面就有三个一排的可疑测试点，推测可能就是 TTL 接口，用万用表很轻松找到 GND，RX，TX 则通过上电时的电压变化来区分，因为上电时 TX 会有比较多的信息要输出，所以电压变化会比较大。</p>
+<p>按照猜想焊上，连接 PC，波特率 115200，上电验证，成功~</p>
+<p>TTL 测试点定义：</p>
+<p>
+        <img class="mx-auto" alt="" src="https://i.loli.net/2021/06/03/PBSalgxLQeyr5Gh.jpg" />   
+    </p>
+<p>启动日志：</p>
+<pre><code>U-Boot 2010.06-dirty (Feb 06 2015 - 19:53:21)
+
+Check spi flash controller v350... Found
+Spi(cs1) ID: 0xEF 0x40 0x17 0x00 0x00 0x00
+Spi(cs1): Block:64KB Chip:8MB Name:&quot;W25Q64FV&quot;
+In:    serial
+Out:   serial
+Err:   serial
+Hit any key to stop autoboot:  0 
+8192 KiB hi_sfc at 0:0 is now current device
+
+## Booting kernel from Legacy Image at 82000000 ...
+   Image Name:   Linux-3.0.8
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    1707544 Bytes = 1.6 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Loading Kernel Image ... OK
+OK
+
+Starting kernel ...
+
+Uncompressing Linux... done, booting the kernel.
+Linux version 3.0.8 (root@skyi) (gcc version 4.4.1 (Hisilicon_v100(gcc4.4-290+uclibc_0.9.32.1+eabi+linuxpthread)) ) #163 Tue Nov 18 10:43:40 CST 2014
+CPU: ARM926EJ-S [41069265] revision 5 (ARMv5TEJ), cr=00053177
+CPU: VIVT data cache, VIVT instruction cache
+Machine: hi3518
+Ignoring unrecognised tag 0x726d6d73
+Memory policy: ECC disabled, Data cache writeback
+AXI bus clock 200000000.
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 10160
+Kernel command line: mem=40M console=ttyAMA0,115200 root=/dev/mtdblock2 mtdparts=hi_sfc:256K(boot),1792K(kernel),5120K(rootfs),448K(ui),576K(conf)
+PID hash table entries: 256 (order: -2, 1024 bytes)
+Dentry cache hash table entries: 8192 (order: 3, 32768 bytes)
+Inode-cache hash table entries: 4096 (order: 2, 16384 bytes)
+Memory: 40MB = 40MB total
+Memory: 36132k/36132k available, 4828k reserved, 0K highmem
+Virtual kernel memory layout:
+    vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+    fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+    DMA     : 0xffc00000 - 0xffe00000   (   2 MB)
+    vmalloc : 0xc3000000 - 0xfe000000   ( 944 MB)
+    lowmem  : 0xc0000000 - 0xc2800000   (  40 MB)
+    modules : 0xbf000000 - 0xc0000000   (  16 MB)
+      .init : 0xc0008000 - 0xc0020000   (  96 kB)
+      .text : 0xc0020000 - 0xc0406000   (3992 kB)
+      .data : 0xc0406000 - 0xc0435560   ( 190 kB)
+       .bss : 0xc0435584 - 0xc0450bd8   ( 110 kB)
+SLUB: Genslabs=13, HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+NR_IRQS:128 nr_irqs:128 128
+sched_clock: 32 bits at 100MHz, resolution 10ns, wraps every 42949ms
+Console: colour dummy device 80x30
+Calibrating delay loop... 218.72 BogoMIPS (lpj=1093632)
+pid_max: default: 32768 minimum: 301
+Mount-cache hash table entries: 512
+CPU: Testing write buffer coherency: ok
+NET: Registered protocol family 16
+Serial: AMBA PL011 UART driver
+uart:0: ttyAMA0 at MMIO 0x20080000 (irq = 5) is a PL011 rev2
+console [ttyAMA0] enabled
+uart:1: ttyAMA1 at MMIO 0x20090000 (irq = 5) is a PL011 rev2
+bio: create slab &lt;bio-0&gt; at 0
+SCSI subsystem initialized
+usbcore: registered new interface driver usbfs
+usbcore: registered new interface driver hub
+usbcore: registered new device driver usb
+cfg80211: Calling CRDA to update world regulatory domain
+Switching to clocksource timer1
+NET: Registered protocol family 2
+IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
+TCP established hash table entries: 2048 (order: 2, 16384 bytes)
+TCP bind hash table entries: 2048 (order: 1, 8192 bytes)
+TCP: Hash tables configured (established 2048 bind 2048)
+TCP reno registered
+UDP hash table entries: 256 (order: 0, 4096 bytes)
+UDP-Lite hash table entries: 256 (order: 0, 4096 bytes)
+NET: Registered protocol family 1
+squashfs: version 4.0 (2009/01/31) Phillip Lougher
+JFFS2 version 2.2. (NAND) © 2001-2006 Red Hat, Inc.
+fuse init (API version 7.16)
+msgmni has been set to 70
+Block layer SCSI generic (bsg) driver version 0.4 loaded (major 253)
+io scheduler noop registered
+io scheduler deadline registered (default)
+io scheduler cfq registered
+brd: module loaded
+wifi power on
+wifi_power driver init
+adc init OK !
+encrypt driver init
+hi_rfled driver probe OK !
+higpio driver initialize.
+Spi id table Version 1.22
+Spi(cs1) ID: 0xEF 0x40 0x17 0x00 0x00 0x00
+SPI FLASH start_up_mode is 3 Bytes
+Spi(cs1): 
+Block:64KB 
+Chip:8MB 
+Name:&quot;W25Q64FV&quot;
+spi size: 8MB
+chip num: 1
+5 cmdlinepart partitions found on MTD device hi_sfc
+Creating 5 MTD partitions on &quot;hi_sfc&quot;:
+0x000000000000-0x000000040000 : &quot;boot&quot;
+0x000000040000-0x000000200000 : &quot;kernel&quot;
+0x000000200000-0x000000700000 : &quot;rootfs&quot;
+0x000000700000-0x000000770000 : &quot;ui&quot;
+0x000000770000-0x000000800000 : &quot;conf&quot;
+Fixed MDIO Bus: probed
+RTL871X: module init start
+RTL871X: rtl8188eu v4.3.0.7_12758.20141114
+RTL871X: build time: Sep 17 2015 17:18:55
+usbcore: registered new interface driver rtl8188eu
+RTL871X: module init ret=0
+usbmon: debugfs is not available
+ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+hiusb-ehci hiusb-ehci.0: HIUSB EHCI
+hiusb-ehci hiusb-ehci.0: new USB bus registered, assigned bus number 1
+hiusb-ehci hiusb-ehci.0: irq 15, io mem 0x100b0000
+hiusb-ehci hiusb-ehci.0: USB 0.0 started, EHCI 1.00
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 1 port detected
+ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
+hiusb-ohci hiusb-ohci.0: HIUSB OHCI
+hiusb-ohci hiusb-ohci.0: new USB bus registered, assigned bus number 2
+hiusb-ohci hiusb-ohci.0: irq 16, io mem 0x100a0000
+hub 2-0:1.0: USB hub found
+hub 2-0:1.0: 1 port detected
+input: higpio-keys as /devices/platform/higpio-keys/input/input0
+Hisilicon Watchdog Timer: 0.01 initialized. default_margin=15 sec (nowayout= 1, nodeamon= 1)
+usbcore: registered new interface driver usbhid
+usbhid: USB HID core driver
+TCP cubic registered
+NET: Registered protocol family 17
+registered taskstats version 1
+drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
+�VFS: Mounted root (squashfs filesystem) readonly on device 31:2.
+Freeing init memory: 96K
+usb 1-1: new high speed USB device number 2 using hiusb-ehci
+init started: BusyBox v1.20.2 (2015-06-12 14:53:47 CST)
+starting pid 459, tty '': '/etc/init.d/rcS'
+bFWReady == _FALSE call reset 8051...
+
+            _ _ _ _ _ _ _ _ _ _ _ _
+            \  _  _   _  _ _ ___
+            / /__/ \ |_/
+           / __   /  -  _ ___
+          / /  / /  / /
+  _ _ _ _/ /  /  \_/  \_ ______
+___________\___\__________________
+
+RTL871X: rtw_ndev_init(wlan0)
+RTL871X: rtw_ndev_init(wlan1)
+#mount all.....
+#Starting mdev.....
+mount: mounting none on /proc/bus/usb failed: No such file or directory
+Hisilicon Media Memory Zone Manager
+hi3518_base: module license 'Proprietary' taints kernel.
+Disabling lock debugging due to kernel taint
+Hisilicon UMAP device driver interface: v3.00
+pa:82800000, va:c3280000
+load sys.ko ...OK!
+load viu.ko ...OK!
+ISP Mod init!
+load vpss.ko ....OK!
+load venc.ko ...OK!
+load group.ko ...OK!
+load chnl.ko ...OK!
+load h264e.ko ...OK!
+load jpege.ko ...OK!
+load rc.ko ...OK!
+load region.ko ....OK!
+load vda.ko ....OK!
+hi_i2c init is ok!
+Kernel: ssp initial ok!
+acodec inited!
+insert audio
+==== Your input Sensor type is ov9712 ====
+[RCS]: /etc/init.d/S00devs
+mknod: /dev/console: File exists
+mknod: /dev/ttyAMA0: File exists
+mknod: /dev/ttyAMA1: File exists
+mknod: /dev/null: File exists
+[RCS]: /etc/init.d/S01udev
+udevd (626): /proc/626/oom_adj is deprecated, please use /proc/626/oom_score_adj instead.
+[RCS]: /etc/init.d/S80network
+starting pid 630, tty '/dev/ttyS000': '/bin/login'
+IPCAM login: ==&gt; rtl8188e_iol_efuse_patch 
+open higpio device success.
+RTL871X: nolinked power save enter
+open higpio device success.
+wifi_enable == 0
+==&gt; rtl8188e_iol_efuse_patch 
+RTL871X: nolinked power save leave
+open higpio device success.
+RTL871X: nolinked power save enter
+==&gt; rtl8188e_iol_efuse_patch 
+RTL871X: nolinked power save leave
+RTL871X: assoc success
+
+process '/bin/login' (pid 630) exited. Scheduling for restart.
+starting pid 977, tty '/dev/ttyS000': '/bin/login'
+</code></pre><p>结合日志信息，可知该网络摄像头配置如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Feature</th>
+<th style="text-align:left">Specification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">SoC</td>
+<td style="text-align:left">HI3518CV100, ARM926EJ-S@100Mh</td>
+</tr>
+<tr>
+<td style="text-align:left">Memory</td>
+<td style="text-align:left">40 MB</td>
+</tr>
+<tr>
+<td style="text-align:left">Flash</td>
+<td style="text-align:left">W25Q64FV 8MB NOR Flash</td>
+</tr>
+<tr>
+<td style="text-align:left">Sensor</td>
+<td style="text-align:left">OV9712 720P/30Hz image Sensor</td>
+</tr>
+<tr>
+<td style="text-align:left">WiFi Module</td>
+<td style="text-align:left">Realtek RTL8188ETV 802.11 b/g/n</td>
+</tr>
+</tbody>
+</table>
+<h2 id="openipc">OpenIPC</h2>
+<p>搞定了 TTL ，就可以尝试刷成 OpenIPC 了，OpenIPC 官方 <a href="https://openipc.org/firmware/">网站</a> 或者官方 <a href="https://github.com/OpenIPC/chaos_calmer">Github Repo</a> 上下载 Hi3518CV100 的 u-boot、 kernel 等资源</p>
+<p>
+        <img class="mx-auto" alt="" src="https://i.loli.net/2021/06/03/rn52GfSpLthcA8o.jpg" />   
+    </p>
+<p>按照 OpenIPC 文档上的步骤：</p>
+<ol>
+<li>把下载好的 u-boot,kernle, rootfs 放到格式化成 fat32 的 TF 卡里: OK</li>
+<li>上电后在 TTL Console 里按回车进入 u-boot 的终端：OK</li>
+<li>执行 <code>sf probe 0</code> 选定 SPI Flash 设备: OK</li>
+<li><code>mw.b 0x82000000 ff 1000000; fatload mmc 0:1 0x82000000 openwrt-hi35xx-XXXXX-u-boot.bin</code> 从 TF 卡加载 u-boot 镜像: X</li>
+</ol>
+<p>问题来了，这原来的 u-boot 版本太老了，没有 <code>mmc</code> 这个命令，没法读写 TF 卡。替代方案是用 <code>tftp</code>，但是这也没有网线，u-boot 不支持无线。没啥好招了，只能把 flash 吹下来，上编程器了。（没有编程器架子 ಥ_ಥ）</p>
+<p>Flash 上编程器之后，首先备份一下，有备无患。命令如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ch341prog -v -tt -r hi3518cv100.bin
+</code></pre></td></tr></table>
+</div>
+</div><p>然后使用 <code>binwalk hi3518cv100.bin</code>，看一下原来 flash 地址布局：</p>
+<pre><code>DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+123156        0x1E114         CRC32 polynomial table, little endian
+262144        0x40000         uImage header, header size: 64 bytes, header CRC: 0x9A61CF8D, created: 2015-10-14 12:42:37, image size: 1707544 bytes, Data Address: 0x80008000, Entry Point: 0x80008000, data CRC: 0x48A1D0B0, OS: Linux, CPU: ARM, image type: OS Kernel Image, compression type: none, image name: &quot;Linux-3.0.8&quot;
+262208        0x40040         Linux kernel ARM boot executable zImage (little-endian)
+272652        0x4290C         LZMA compressed data, properties: 0x5D, dictionary size: 67108864 bytes, uncompressed size: -1 bytes
+2097152       0x200000        Squashfs filesystem, little endian, version 4.0, compression:xz, size: 4654288 bytes, 450 inodes, blocksize: 131072 bytes, created: 2015-10-14 14:39:06
+7340032       0x700000        Squashfs filesystem, little endian, version 4.0, compression:xz, size: 219138 bytes, 161 inodes, blocksize: 131072 bytes, created: 2015-09-01 13:38:07
+...
+</code></pre><p>可以看出 flash 内存空间分 4 部分，分别是：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">地址区间</th>
+<th style="text-align:left">大小</th>
+<th style="text-align:left">内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">0x0 ~ 0x3FFFF</td>
+<td style="text-align:left">256 KB</td>
+<td style="text-align:left">u-boot</td>
+</tr>
+<tr>
+<td style="text-align:left">0x40000 ~ 0x1FFFFF</td>
+<td style="text-align:left">1.75 MB</td>
+<td style="text-align:left">Linux Kernel Image</td>
+</tr>
+<tr>
+<td style="text-align:left">0x200000 ~ 0x6FFFFF</td>
+<td style="text-align:left">5 MB</td>
+<td style="text-align:left">RootFS</td>
+</tr>
+<tr>
+<td style="text-align:left">0x700000 ~ 0x7FFFFF</td>
+<td style="text-align:left">1 MB</td>
+<td style="text-align:left">Web 资源</td>
+</tr>
+</tbody>
+</table>
+<p>这就很简单了:</p>
+<ol>
+<li>编程器清空 flash：<code>ch341prog -v -tt -e</code></li>
+<li>刷写 <code>openwrt-hi35xx-18cv100-u-boot.bin</code>: <code>ch341prog -v -tt -w openwrt-hi35xx-18cv100-u-boot.bin</code></li>
+<li>把 flash 从编程器上吹下来，再吹回板子上</li>
+<li>上电！</li>
+</ol>
+<p>GG</p>
+<p>TTL 终端没有任何反应。。重试也不行。。</p>
+<ul>
+<li>flash 吹坏了？拆装 * 3</li>
+<li>u-boot 文件用错了？拆装 * 3</li>
+<li>编程器没操作对？拆装 * 3</li>
+<li>没有 kernel 启动不了？拆装 * 3</li>
+</ul>
+<p>感觉再拆下去，编程器转接板，flash，摄像头至少得坏一个，赶紧下单买了个编程器夹，顺便买了几个编程器座子，焊上之后长这样：</p>
+<p>
+        <img class="mx-auto" alt="IMG_0980" src="https://i.loli.net/2021/06/03/4KsahMRTpmIY1gt.jpg" />   
+    </p>
+<p>突然想到，有没有可能下载的 u-boot 本身是不适配这个板子的，因为 bootloader 是和硬件强相关的，可能 SoC 一样但是其他硬件不一样，导致 u-boot 起不来。</p>
+<p>bootloader 的主要作用就是枚举硬件，接着引导操作系统，所以理论上用原有的 u-boot 也是可以启动 OpenIPC 的 Linux Kernel 的。说干就干：</p>
+<p>OpenIPC 提供的文件只有三个，没有原版 Web 资源文件那个 Squashfs 镜像，所以只要把原版的 u-boot，OpenIPC 的 Linux Kernel Image以及对应的 RootFS，按照起始地址
+<code>0x0</code>, <code>0x40000</code>, <code>0x200000</code> 合并成一个二进制文件即可。</p>
+<h3 id="提取原版-u-boot">提取原版 u-boot</h3>
+<pre><code># 从备份的镜像中提取前 256KB 内容到 u-boot.bin
+dd if=./hi3518cv100.bin of=u-boot.bin bs=1024 count=256
+</code></pre><h3 id="准备-linux-kernle-image">准备 Linux Kernle Image</h3>
+<p>OpenIPC 提供的 uImage 文件大小为 1.3 MB，不足 1.75 MB，可以通过如下方式构造出来：</p>
+<pre><code># 创建一个 1.75 MB 的空文件
+dd if=/dev/zero of=./kernel.bin bs=1k count=1792
+
+# 把 openwrt-hi35xx-18cv100-default-uImage 写入到 kernel.bin 
+dd if=openwrt-hi35xx-18cv100-default-uImage of=kernel.bin conv=notrunc
+</code></pre><p>这样就有一个 1.75 MB 包含 uImage 的二进制文件了</p>
+<p>因为 RootFS 是最后一个文件，虽然它的大小也不足剩余的 6MB，但是可以不用管，直接把它和前边的两个文件拼接到一起就行：</p>
+<pre><code># 拼接
+cat u-boot.bin kernel.bin openwrt-hi35xx-18cv100-default-root.squashfs &gt; new.bin
+</code></pre><p>搞定，再用 <code>binwalk</code> 验证一下起始地址：</p>
+<pre><code>DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+123156        0x1E114         CRC32 polynomial table, little endian
+262144        0x40000         uImage header, header size: 64 bytes, header CRC: 0x20BB4D30, created: 2021-05-23 19:52:11, image size: 1315576 bytes, Data Address: 0x80008000, Entry Point: 0x80008000, data CRC: 0x2C1D389D, OS: Linux, CPU: ARM, image type: OS Kernel Image, compression type: none, image name: &quot;OpenIPC.org | Linux-3.0.8&quot;
+262208        0x40040         Linux kernel ARM boot executable zImage (little-endian)
+270076        0x41EFC         LZMA compressed data, properties: 0x6D, dictionary size: 1048576 bytes, uncompressed size: -1 bytes
+2097152       0x200000        Squashfs filesystem, little endian, version 4.0, compression:xz, size: 4000748 bytes, 1628 inodes, blocksize: 262144 bytes, created: 2021-05-23 19:52:12
+</code></pre><p>没有问题 ~ 烧录到板子上，上电，开机成功~日志如下：</p>
+<pre><code>U-Boot 2010.06-dirty (Feb 06 2015 - 19:53:21)
+
+Check spi flash controller v350... Found
+Spi(cs1) ID: 0xEF 0x40 0x17 0x00 0x00 0x00
+Spi(cs1): Block:64KB Chip:8MB Name:&quot;W25Q64FV&quot;
+In:    serial
+Out:   serial
+Err:   serial
+Hit any key to stop autoboot:  0 
+8192 KiB hi_sfc at 0:0 is now current device
+
+## Booting kernel from Legacy Image at 82000000 ...
+   Image Name:   OpenIPC.org | Linux-3.0.8
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    1315576 Bytes = 1.3 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Loading Kernel Image ... OK
+OK
+
+Starting kernel ...
+
+Uncompressing Linux... done, booting the kernel.
+[    0.000000] Linux version 3.0.8 (runner@fv-az32-571) (gcc version 4.8.3 (OpenWrt/Linaro GCC 4.8-2014.04 latest-174-gf2830dcd3b) ) #1 Sun May 23 19:52:08 UTC 2021
+[    0.000000] CPU: ARM926EJ-S [41069265] revision 5 (ARMv5TEJ), cr=00053177
+[    0.000000] CPU: VIVT data cache, VIVT instruction cache
+[    0.000000] Machine: hi3518
+[    0.000000] Memory policy: ECC disabled, Data cache writeback
+[    0.000000] AXI bus clock 200000000.
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 10160
+[    0.000000] Kernel command line: mem=40M console=ttyAMA0,115200 root=/dev/mtdblock2 mtdparts=hi_sfc:256K(boot),1792K(kernel),5120K(rootfs),448K(ui),576K(conf)
+[    0.000000] PID hash table entries: 256 (order: -2, 1024 bytes)
+[    0.000000] Dentry cache hash table entries: 8192 (order: 3, 32768 bytes)
+[    0.000000] Inode-cache hash table entries: 4096 (order: 2, 16384 bytes)
+[    0.000000] Memory: 40MB = 40MB total
+[    0.000000] Memory: 37060k/37060k available, 3900k reserved, 0K highmem
+[    0.000000] Virtual kernel memory layout:
+[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+[    0.000000]     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+[    0.000000]     DMA     : 0xffc00000 - 0xffe00000   (   2 MB)
+[    0.000000]     vmalloc : 0xc3000000 - 0xfe000000   ( 944 MB)
+[    0.000000]     lowmem  : 0xc0000000 - 0xc2800000   (  40 MB)
+[    0.000000]     modules : 0xbf000000 - 0xc0000000   (  16 MB)
+[    0.000000]       .init : 0xc0008000 - 0xc0024000   ( 112 kB)
+[    0.000000]       .text : 0xc0024000 - 0xc0340000   (3184 kB)
+[    0.000000]       .data : 0xc0340000 - 0xc0357220   (  93 kB)
+[    0.000000]        .bss : 0xc0357244 - 0xc03680f8   (  68 kB)
+[    0.000000] SLUB: Genslabs=13, HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] NR_IRQS:128 nr_irqs:128 128
+[    0.000000] sched_clock: 32 bits at 100MHz, resolution 10ns, wraps every 42949ms
+[    0.000070] Calibrating delay loop... 218.72 BogoMIPS (lpj=1093632)
+[    0.070079] pid_max: default: 32768 minimum: 301
+[    0.070511] Mount-cache hash table entries: 512
+[    0.071726] CPU: Testing write buffer coherency: ok
+[    0.076423] NET: Registered protocol family 16
+[    0.091380] Serial: AMBA PL011 UART driver
+[    0.091717] uart:0: ttyAMA0 at MMIO 0x20080000 (irq = 5) is a PL011 rev2
+[    0.297458] console [ttyAMA0] enabled
+[    0.302158] uart:1: ttyAMA1 at MMIO 0x20090000 (irq = 5) is a PL011 rev2
+[    0.353261] bio: create slab &lt;bio-0&gt; at 0
+[    0.374788] SCSI subsystem initialized
+[    0.382197] usbcore: registered new interface driver usbfs
+[    0.388460] usbcore: registered new interface driver hub
+[    0.394855] usbcore: registered new device driver usb
+[    0.407858] cfg80211: Calling CRDA to update world regulatory domain
+[    0.415016] Switching to clocksource timer1
+[    0.428448] NET: Registered protocol family 2
+[    0.433192] IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.440812] TCP established hash table entries: 2048 (order: 2, 16384 bytes)
+[    0.448263] TCP bind hash table entries: 2048 (order: 1, 8192 bytes)
+[    0.454878] TCP: Hash tables configured (established 2048 bind 2048)
+[    0.461279] TCP reno registered
+[    0.464454] UDP hash table entries: 256 (order: 0, 4096 bytes)
+[    0.470442] UDP-Lite hash table entries: 256 (order: 0, 4096 bytes)
+[    0.477471] NET: Registered protocol family 1
+[    0.482799] RPC: Registered named UNIX socket transport module.
+[    0.488744] RPC: Registered udp transport module.
+[    0.493542] RPC: Registered tcp transport module.
+[    0.498259] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    0.553102] squashfs: version 4.0 (2009/01/31) Phillip Lougher
+[    0.562431] JFFS2 version 2.2. (NAND) (SUMMARY)  © 2001-2006 Red Hat, Inc.
+[    0.573927] msgmni has been set to 72
+[    0.578721] io scheduler noop registered
+[    0.582758] io scheduler deadline registered (default)
+[    0.588234] io scheduler cfq registered
+[    0.625934] brd: module loaded
+[    0.633878] Spi id table Version 1.22
+[    0.639204] Spi(cs1) ID: 0xEF 0x40 0x17 0x00 0x00 0x00
+[    0.656119] SPI FLASH start_up_mode is 3 Bytes
+[    0.660642] Spi(cs1): 
+[    0.662842] Block:64KB 
+[    0.665291] Chip:8MB 
+[    0.667562] Name:&quot;W25Q64FV&quot;
+[    0.670581] spi size: 8MB
+[    0.673205] chip num: 1
+[    0.675699] 5 cmdlinepart partitions found on MTD device hi_sfc
+[    0.681665] Creating 5 MTD partitions on &quot;hi_sfc&quot;:
+[    0.686482] 0x000000000000-0x000000040000 : &quot;boot&quot;
+[    0.695533] 0x000000040000-0x000000200000 : &quot;kernel&quot;
+[    0.704726] 0x000000200000-0x000000700000 : &quot;rootfs&quot;
+[    0.714055] 0x000000700000-0x000000770000 : &quot;ui&quot;
+[    0.723055] 0x000000770000-0x000000800000 : &quot;conf&quot;
+[    0.751933] Fixed MDIO Bus: probed
+[    1.171386] himii: probed
+[    1.299903] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    1.306942] hiusb-ehci hiusb-ehci.0: HIUSB EHCI
+[    1.312790] hiusb-ehci hiusb-ehci.0: new USB bus registered, assigned bus number 1
+[    1.320817] hiusb-ehci hiusb-ehci.0: irq 15, io mem 0x100b0000
+[    1.340127] hiusb-ehci hiusb-ehci.0: USB 0.0 started, EHCI 1.00
+[    1.348445] hub 1-0:1.0: USB hub found
+[    1.352363] hub 1-0:1.0: 1 port detected
+[    1.359385] platform rtc-hi3518: rtc core: registered rtc-hi3518 as rtc0
+[    1.372787] TCP cubic registered
+[    1.376049] NET: Registered protocol family 17
+[    1.380926] 802.1Q VLAN Support v1.8
+[    1.387044] registered taskstats version 1
+[    1.391516] platform rtc-hi3518: setting system clock to 2015-11-22 14:02:45 UTC (1448200965)
+�[    1.410181] List of all partitions:
+[    1.413746] 1f00             256 mtdblock0  (driver?)
+[    1.418820] 1f01            1792 mtdblock1  (driver?)
+[    1.423982] 1f02            5120 mtdblock2  (driver?)
+[    1.429051] 1f03             448 mtdblock3  (driver?)
+[    1.434172] 1f04             576 mtdblock4  (driver?)
+[    1.439242] f000             256 romblock0  (driver?)
+[    1.444350] f001            1792 romblock1  (driver?)
+[    1.449419] f002            5120 romblock2  (driver?)
+[    1.454545] f003             448 romblock3  (driver?)
+[    1.459619] f004             576 romblock4  (driver?)
+[    1.464714] No filesystem could mount root, tried:  squashfs
+[    1.470437] Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(31,2)
+[    1.478788] Backtrace: 
+[    1.481333] [&lt;c0028680&gt;] (dump_backtrace+0x0/0x10c) from [&lt;c028c36c&gt;] (dump_stack+0x18/0x1c)
+[    1.489779]  r6:00008000 r5:c1979009 r4:c02fb840 r3:c034679c
+[    1.495549] [&lt;c028c354&gt;] (dump_stack+0x0/0x1c) from [&lt;c028c4b4&gt;] (panic+0x68/0x17c)
+[    1.503284] [&lt;c028c44c&gt;] (panic+0x0/0x17c) from [&lt;c0008e58&gt;] (mount_block_root+0x1e0/0x220)
+[    1.511678]  r3:c201ff04 r2:00000020 r1:c201ff38 r0:c02fb840
+[    1.517368]  r7:c00201a4
+[    1.519936] [&lt;c0008c78&gt;] (mount_block_root+0x0/0x220) from [&lt;c0009050&gt;] (mount_root+0xbc/0xe4)
+[    1.528616] [&lt;c0008f94&gt;] (mount_root+0x0/0xe4) from [&lt;c00091e0&gt;] (prepare_namespace+0x168/0x1bc)
+[    1.537444]  r5:c00201a4 r4:c03572c0
+[    1.541093] [&lt;c0009078&gt;] (prepare_namespace+0x0/0x1bc) from [&lt;c0008a5c&gt;] (kernel_init+0xf0/0x11c)
+[    1.549970]  r6:c0038080 r5:c001f788 r4:c001f788
+[    1.554693] [&lt;c000896c&gt;] (kernel_init+0x0/0x11c) from [&lt;c0038080&gt;] (do_exit+0x0/0x6fc)
+[    1.562651]  r5:c000896c r4:00000000
+
+
+U-Boot 2010.06-dirty (Feb 06 2015 - 19:53:21)
+
+Check spi flash controller v350... Found
+Spi(cs1) ID: 0xEF 0x40 0x17 0x00 0x00 0x00
+Spi(cs1): Block:64KB Chip:8MB Name:&quot;W25Q64FV&quot;
+In:    serial
+Out:   serial
+Err:   serial
+Hit any key to stop autoboot:  0 
+8192 KiB hi_sfc at 0:0 is now current device
+
+## Booting kernel from Legacy Image at 82000000 ...
+   Image Name:   OpenIPC.org | Linux-3.0.8
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    1315576 Bytes = 1.3 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Loading Kernel Image ... OK
+OK
+
+Starting kernel ...
+
+Uncompressing Linux... done, booting the kernel.
+[    0.000000] Linux version 3.0.8 (runner@fv-az32-571) (gcc version 4.8.3 (OpenWrt/Linaro GCC 4.8-2014.04 latest-174-gf2830dcd3b) ) #1 Sun May 23 19:52:08 UTC 2021
+[    0.000000] CPU: ARM926EJ-S [41069265] revision 5 (ARMv5TEJ), cr=00053177
+[    0.000000] CPU: VIVT data cache, VIVT instruction cache
+[    0.000000] Machine: hi3518
+[    0.000000] Memory policy: ECC disabled, Data cache writeback
+[    0.000000] AXI bus clock 200000000.
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 10160
+[    0.000000] Kernel command line: mem=40M console=ttyAMA0,115200 root=/dev/mtdblock2 mtdparts=hi_sfc:256K(boot),1792K(kernel),5120K(rootfs),448K(ui),576K(conf)
+[    0.000000] PID hash table entries: 256 (order: -2, 1024 bytes)
+[    0.000000] Dentry cache hash table entries: 8192 (order: 3, 32768 bytes)
+[    0.000000] Inode-cache hash table entries: 4096 (order: 2, 16384 bytes)
+[    0.000000] Memory: 40MB = 40MB total
+[    0.000000] Memory: 37060k/37060k available, 3900k reserved, 0K highmem
+[    0.000000] Virtual kernel memory layout:
+[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+[    0.000000]     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+[    0.000000]     DMA     : 0xffc00000 - 0xffe00000   (   2 MB)
+[    0.000000]     vmalloc : 0xc3000000 - 0xfe000000   ( 944 MB)
+[    0.000000]     lowmem  : 0xc0000000 - 0xc2800000   (  40 MB)
+[    0.000000]     modules : 0xbf000000 - 0xc0000000   (  16 MB)
+[    0.000000]       .init : 0xc0008000 - 0xc0024000   ( 112 kB)
+[    0.000000]       .text : 0xc0024000 - 0xc0340000   (3184 kB)
+[    0.000000]       .data : 0xc0340000 - 0xc0357220   (  93 kB)
+[    0.000000]        .bss : 0xc0357244 - 0xc03680f8   (  68 kB)
+[    0.000000] SLUB: Genslabs=13, HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] NR_IRQS:128 nr_irqs:128 128
+[    0.000000] sched_clock: 32 bits at 100MHz, resolution 10ns, wraps every 42949ms
+[    0.000070] Calibrating delay loop... 218.72 BogoMIPS (lpj=1093632)
+[    0.070079] pid_max: default: 32768 minimum: 301
+[    0.070510] Mount-cache hash table entries: 512
+[    0.071725] CPU: Testing write buffer coherency: ok
+[    0.076419] NET: Registered protocol family 16
+[    0.091352] Serial: AMBA PL011 UART driver
+[    0.091691] uart:0: ttyAMA0 at MMIO 0x20080000 (irq = 5) is a PL011 rev2
+[    0.297429] console [ttyAMA0] enabled
+[    0.302132] uart:1: ttyAMA1 at MMIO 0x20090000 (irq = 5) is a PL011 rev2
+[    0.353104] bio: create slab &lt;bio-0&gt; at 0
+[    0.374615] SCSI subsystem initialized
+[    0.382028] usbcore: registered new interface driver usbfs
+[    0.388278] usbcore: registered new interface driver hub
+[    0.394685] usbcore: registered new device driver usb
+[    0.407665] cfg80211: Calling CRDA to update world regulatory domain
+[    0.414826] Switching to clocksource timer1
+[    0.428235] NET: Registered protocol family 2
+[    0.432977] IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.440606] TCP established hash table entries: 2048 (order: 2, 16384 bytes)
+[    0.448054] TCP bind hash table entries: 2048 (order: 1, 8192 bytes)
+[    0.454667] TCP: Hash tables configured (established 2048 bind 2048)
+[    0.461063] TCP reno registered
+[    0.464240] UDP hash table entries: 256 (order: 0, 4096 bytes)
+[    0.470226] UDP-Lite hash table entries: 256 (order: 0, 4096 bytes)
+[    0.477247] NET: Registered protocol family 1
+[    0.482557] RPC: Registered named UNIX socket transport module.
+[    0.488502] RPC: Registered udp transport module.
+[    0.493300] RPC: Registered tcp transport module.
+[    0.498017] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    0.552849] squashfs: version 4.0 (2009/01/31) Phillip Lougher
+[    0.562147] JFFS2 version 2.2. (NAND) (SUMMARY)  © 2001-2006 Red Hat, Inc.
+[    0.573636] msgmni has been set to 72
+[    0.578434] io scheduler noop registered
+[    0.582469] io scheduler deadline registered (default)
+[    0.587938] io scheduler cfq registered
+[    0.625549] brd: module loaded
+[    0.633472] Spi id table Version 1.22
+[    0.638774] Spi(cs1) ID: 0xEF 0x40 0x17 0x00 0x00 0x00
+[    0.655687] SPI FLASH start_up_mode is 3 Bytes
+[    0.660211] Spi(cs1): 
+[    0.662411] Block:64KB 
+[    0.664860] Chip:8MB 
+[    0.667132] Name:&quot;W25Q64FV&quot;
+[    0.670147] spi size: 8MB
+[    0.672769] chip num: 1
+[    0.675263] 5 cmdlinepart partitions found on MTD device hi_sfc
+[    0.681228] Creating 5 MTD partitions on &quot;hi_sfc&quot;:
+[    0.686047] 0x000000000000-0x000000040000 : &quot;boot&quot;
+[    0.695074] 0x000000040000-0x000000200000 : &quot;kernel&quot;
+[    0.704254] 0x000000200000-0x000000700000 : &quot;rootfs&quot;
+[    0.713587] 0x000000700000-0x000000770000 : &quot;ui&quot;
+[    0.722569] 0x000000770000-0x000000800000 : &quot;conf&quot;
+[    0.751434] Fixed MDIO Bus: probed
+[    1.171691] himii: probed
+[    1.299893] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    1.306925] hiusb-ehci hiusb-ehci.0: HIUSB EHCI
+[    1.312776] hiusb-ehci hiusb-ehci.0: new USB bus registered, assigned bus number 1
+[    1.320815] hiusb-ehci hiusb-ehci.0: irq 15, io mem 0x100b0000
+[    1.340129] hiusb-ehci hiusb-ehci.0: USB 0.0 started, EHCI 1.00
+[    1.348444] hub 1-0:1.0: USB hub found
+[    1.352361] hub 1-0:1.0: 1 port detected
+[    1.359383] platform rtc-hi3518: rtc core: registered rtc-hi3518 as rtc0
+[    1.372761] TCP cubic registered
+[    1.376019] NET: Registered protocol family 17
+[    1.380894] 802.1Q VLAN Support v1.8
+[    1.387003] registered taskstats version 1
+[    1.391474] platform rtc-hi3518: setting system clock to 2015-11-22 14:03:07 UTC (1448200987)
+�[    1.405605] VFS: Mounted root (squashfs filesystem) readonly on device 31:2.
+[    1.412941] Freeing init memory: 112K
+[    2.014421] usb 1-1: new high speed USB device number 2 using hiusb-ehci
+[    2.100346] init: Console is alive
+[    3.772234] Initializing USB Mass Storage driver...
+[    3.778131] usbcore: registered new interface driver usb-storage
+[    3.784240] USB Mass Storage support registered.
+[    4.190725] init: - preinit -
+get_chip_id35180100() got unexpected 0xffffffff for 3518?v100
+Check kernel modules loaded
+Press the [f] key and hit [enter] to enter failsafe mode
+Press the [1], [2], [3] or [4] key and hit [enter] to select the debug level
+Failed to connect to ubus
+Please press Enter to activate this console.
+
+
+
+BusyBox v1.23.2 (2021-05-23 19:39:13 UTC) built-in shell (ash)
+
+
+ ___                  _  ___  ___
+/   \ ___  ___  _  _ | ||   \/  _|
+| | ||   \/ _ \| \| || || | || |
+| | || | |  __/| \\ || ||  _/| |_
+\___/|  _/\___||_|\_||_||_|  \___|.ORG    v21.04.10.2
+     |_|
+
+
+OpenIPC is asking for your help to support development cost and long-term maintenance
+of what we believe will serve a fundamental role in the advancement of a stable, flexible
+and most importantly, Open IP Network Camera Framework for users worldwide.
+
+Your contribution will help us advance development proposals forward, and interact with 
+the community on a regular basis.
+
+  https://openipc.org/contribution/
+</code></pre><h2 id="todo">TODO</h2>
+<p>虽然系统起来了，但是目前 Sensor 没有被正确识别，WiFi Module 没有正常驱动，u-boot 也是不支持 mmc 的老版本，更新固件困难。所以接下来要干的事情就是一一解决这些问题：</p>
+<ol>
+<li>移植 OpenIPC 的 u-boot</li>
+<li>驱动 WiFi Module</li>
+<li>识别 Sensor</li>
+</ol>
+<h2 id="参考资料">参考资料</h2>
+<ol>
+<li><a href="https://www.mydigit.cn/forum.php?mod=viewthread&amp;tid=255164">https://www.mydigit.cn/forum.php?mod=viewthread&amp;tid=255164</a></li>
+<li><a href="https://github.com/felix-001/hackboyun/blob/develop/doc/Boyun_FlashFirmware.md">https://github.com/felix-001/hackboyun/blob/develop/doc/Boyun_FlashFirmware.md</a></li>
+<li><a href="https://github.com/OpenIPC/chaos_calmer">https://github.com/OpenIPC/chaos_calmer</a></li>
+</ol>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/">https://www.tylinux.com/post/hack_boyun_ipcamera_01/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/install_gitlab_runner_on_android/">Android 设备上使用 Termux 安装运行 gitlab-runner</a></li>
+        
+        <li><a href="/post/one_small_cocoapods_issue/">CocoaPods 小坑一例</a></li>
+        
+        <li><a href="/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a></li>
+        
+        <li><a href="/post/fix_jietu_crash_with_reverse_method/">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a></li>
+        
+        <li><a href="/post/downgrade-iOS-13-3-to-13-2-3/">iPhone SE 降级 iOS 13.2.3</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            没有标签
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="https://www.tylinux.com/">不正经的正经程序猿 By
+            tylinux</a>
+        
+    </div>
+    <br />
+    
+</footer>
+
+
+
+<script type="text/javascript">
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [['$', '$']],
+            processEscapes: true
+        }
+    };
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/" title="也折腾博云物联辣鸡网络摄像头（上）">也折腾博云物联辣鸡网络摄像头（上）</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/" title="Android 设备上使用 Termux 安装运行 gitlab-runner">Android 设备上使用 Termux 安装运行 gitlab-runner</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/one_small_cocoapods_issue/" title="CocoaPods 小坑一例">CocoaPods 小坑一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/" title="翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/" title="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全 (2)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E5%BC%80%E5%8F%91/">开发 (3)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件 (5)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用 (4)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究 (8)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

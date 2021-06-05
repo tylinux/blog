@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
+
+    <title>Posts | 不正经的正经程序猿</title>
+    <meta property="og:title" content="Posts - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="Posts">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <link rel="alternate" type="application/rss+xml+[xml]" href="https://www.tylinux.com/post/index.xml" title="不正经的正经程序猿" />
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/" title="也折腾博云物联辣鸡网络摄像头（上）">也折腾博云物联辣鸡网络摄像头（上）</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2021年6月3日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E7%A1%AC%E4%BB%B6'>硬件</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            相关资源文件可至：https://github.com/tylinux/HackBoyunIPCamera 下载
+ 前几天看了 用垃圾网络摄像头构建的家庭直播系统 这篇帖子，也想试着玩儿玩儿网络摄像头，就买了帖子里提到的 38 俩包邮的博云物联摄像头。
+到手拆机：
+ 海思 HI3518CV100 的主控芯片 瑞昱 RTL8188ETV WiFi 模块 开搞。
+TTL 第一步是先找到 TTL 接口，这样就能观察启动过程，刷完系统也好辨别是否工作正常，是哪里出了问题。 思路如下：
+ 找明确标记为 RX, TX 的测试点 找比较可疑的两个、三个、或者四个并排的测试点 终极方案：把主控吹下来，按照 datasheet 里标记的 RX，TX 引脚找对应的测试点  很幸运，板子背面就有三个一排的可疑测试点，推测可能就是 TTL 接口，用万用表很轻松找到 GND，RX，TX 则通过上电时的电压变化来区分，因为上电时 TX 会有比较多的信息要输出，所以电压变化会比较大。
+按照猜想焊上，连接 PC，波特率 115200，上电验证，成功~
+TTL 测试点定义：
+ 启动日志：
+U-Boot 2010.06-dirty (Feb 06 2015 - 19:53:21) Check spi flash controller v350... Found Spi(cs1) ID: 0xEF 0x40 0x17 0x00 0x00 0x00 Spi(cs1): Block:64KB Chip:8MB Name:&quot;W25Q64FV&quot; In: serial Out: serial Err: serial Hit any key to stop autoboot: 0 8192 KiB hi_sfc at 0:0 is now current device ## Booting kernel from Legacy Image at 82000000 .……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/">阅读全文</a></p>
+    </article>
+    
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/" title="Android 设备上使用 Termux 安装运行 gitlab-runner">Android 设备上使用 Termux 安装运行 gitlab-runner</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2021年5月19日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8'>系统应用</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            安装 Termux  Termux: https://f-droid.org/packages/com.termux/ Termux-boot: https://f-droid.org/packages/com.termux.boot/  换源 Termux 默认软件源国内链接可能不顺畅，可以改用清华的源，如下：
+1 2  # 执行如下命令更换三个源 termux-change-repo   安装并启用 sshd 该步骤主要是为了远程操作，避免在手机上大量输入。
+1 2 3 4 5 6 7 8 9 10 11  # 安装 openssh apt install openssh termux-services # 启动 sshd sshd # 修改密码 passwd # 获取用户名 whoami   完成后执行 exit 关闭会话，重新打开 APP 后执行：
+1 2 3  sv-enable sshd sv up sshd   使能 sshd 服务。……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/">阅读全文</a></p>
+    </article>
+    
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/one_small_cocoapods_issue/" title="CocoaPods 小坑一例">CocoaPods 小坑一例</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2021年5月17日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E5%BC%80%E5%8F%91'>开发</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            错误信息 [!] The 'Pods-xxx' target has libraries with conflicting names: libflipper-rsocket.a. 背景信息 公司使用的是二进制化后的 pod，podspec 中使用 vendored_libraries 引入了 libFlipper-RSocket.a，然而在 pod install 的时候，出现了如上的错误，搜索一下，别人出现这个问题是两个不同的 pod 引用了相同的 .a 文件。但是我可以肯定我这里是没有这个问题的。
+排查 根据报错的信息，找到源码位置：lib/cocoapods/installer/xcode/target_validator.rb，如下：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24  def verify_no_duplicate_framework_and_library_names aggregate_targets.each do |aggregate_target| aggregate_target.user_build_configurations.each_key do |config| pod_targets = aggregate_target.pod_targets_for_build_configuration(config) file_accessors = pod_targets.flat_map(&amp;:file_accessors).select { |fa| fa.spec.library_specification? } frameworks = file_accessors.……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/one_small_cocoapods_issue/">阅读全文</a></p>
+    </article>
+    
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/" title="翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2021年1月25日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E7%A1%AC%E4%BB%B6'>硬件</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            文中记录的改装方法确认可以生效，翻车的是我这个个案
+ 前几日脑子一热，闲鱼入手一台 HP ElitePad 1000 G2 Windows 平板，单主机 199，加改装 DC 充电 260。这个平板很神奇，因为充电器接口使用的是 HP 自己的接口，所以充电器的价格几乎快和主机一个加钱了 ಥ_ಥ，所以入手了改装充电的套餐。
+回来之后，感觉自带的 Windows 10 版本比较老，想升级一下系统，然后系统自带的更新不可用，还没有 USB 接口，闲鱼上有 SD 卡重装系统的教程，还特娘的要 30，感觉这平板不值钱，其他的都特娘的值钱。
+所以，开始研究怎么特娘的给他加个 USB 接口（噩梦的开始）。
+改装 USB 2.0 端口 拆开主机，取下屏幕，映入眼帘的是一块硕大的电池，娇小的主板，和一个过时的 3G 网卡： 这里的网卡型号是华为 MU736，按照文档所述，网卡接口是 M.2 Socket 2，具体来讲应该是 M.2 Socket 2 Key B，接口的主要功能包括：
+ PCIe x2 / SATA /USB 2.0 / USB 3.0 / HSIC / SSIC / Audio / UIM / I2C
+ 再依据 M.2 Socket 2 Key B 的 pinout，可以确定 USB 2.……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/">阅读全文</a></p>
+    </article>
+    
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/" title="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2020年12月7日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6'>逆向研究</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            <p>腾讯开发的截图工具：<a href="https://apps.apple.com/us/app/%E6%88%AA%E5%9B%BE-jietu-%E5%BF%AB%E9%80%9F%E6%A0%87%E6%B3%A8-%E4%BE%BF%E6%8D%B7%E5%88%86%E4%BA%AB%E7%9A%84%E6%88%AA%E5%B1%8F%E5%B7%A5%E5%85%B7/id1059334054?mt=12">Jietu</a> 一直是我在 macOS 下最喜欢的截图工具，不过在升级到 macOS 11 Big Sur 之后就 GG 了，区域截图的时候会崩溃。这 App 上次更新是在 3 年前，指望腾讯修复希望不大，正好这俩天有空，尝试自己定位解决一下问题。</p>……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/">阅读全文</a></p>
+    </article>
+    
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2020年1月5日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6'>逆向研究</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            <p>手头有部之前在咸鱼上 80 块购入的有 ID 的 iPhone SE，系统 iOS 13.1.2，使用 checkra1n 绕过了 iCloud Lock。今儿翻出来想玩玩儿 checkra1n，想都没想就升级到了最新的 iOS 13.3，升级结束才想起来，自 iOS 13.0 beta4 开始，Apple 修复了通过重命名 <code>Setup.app</code> 的方式绕过 iCloud Lock 的漏洞，一试果然，重命名 <code>Setup.app</code> 后，Home 键不响应，重启之后，文件系统自动恢复到修改之前。一番搜索无果，想起自己保存了自 iOS 12.4 开始的所有 APTicket，遂决定恢复到 iOS 13.2.3，中间碰到一点儿小问题，特此记录一下。</p>……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/">阅读全文</a></p>
+    </article>
+    
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年12月29日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E5%BC%80%E5%8F%91'>开发</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            <p>在 AMD CPU 的机器上安装黑苹果之后，能用的虚拟机软件基本只有 VirtualBox 了。虽然能用，但是性能差的让人抠脚。通常来讲，虚拟机软件会优先利用 CPU 的虚拟化特性，比如 Intel 的 <code>VT-X/VT-D</code> 以及 AMD 的 <code>SVM</code>，在硬件虚拟化不可用的时候，会使用纯软件模拟的方式运行 Guest 系统指令。macOS 截止目前，全部运行在 Intel 的 CPU 上，所以其虚拟化框架 <code>Hypervisor.framework</code>，也全部是基于 Intel 的虚拟化指令实现，并没有兼容 AMD，这也是 <code>VMWare</code> 等其他虚拟机软件无法在 AMD CPU 的黑苹果上运行的根本原因。</p>
+<p>VirtualBox 看起来没有强依赖 <code>Hypervisor.framework</code>，因此在 AMD CPU 上也可以运行。但是这糟糕的性能让我怀疑它没有使用 <code>SVM</code> 来运行虚拟机，而是纯软件模拟。为了一探究竟，我准备在 macOS 上自行编译 VirtualBox。</p>……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/">阅读全文</a></p>
+    </article>
+    
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年12月22日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E7%A1%AC%E4%BB%B6'>硬件</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            <p>上次配置的 AMD 黑苹果放到公司，替代 Macbook Pro 2015 做日常开发了，虽然主频只有 3.8Ghz，但是 8C16T，32GB 内存，性能还是吊打 Macbook Pro 的 2.2G 4C8T，16GB的。</p>
+<p>家里的老台式还是 2014 年的时候配置的，当时是通过开源夏令营获得了 4400 块的奖金。研究了好几天配置了一台 Core i5 4590 4C4T + 8GB 内存的 MATX 台式。虽然后来内存加到了 16GB, 也添加了 AMD RX470D 显卡，但在搞点儿开发的时候，还是有些力不从心。所以萌生了配置一台新设备的想法。</p>……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/">阅读全文</a></p>
+    </article>
+    
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年9月27日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E7%A1%AC%E4%BB%B6'>硬件</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            <p>最近 DIY 之心又又又又复活了，翻出来吃灰多年的 51 开发板，重新学习一下 51。现在主力系统已经换成了 macOS，在折腾环境搭建的过程中，踩了一丢丢坑，特此记录一下。</p>……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/">阅读全文</a></p>
+    </article>
+    
+    
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">
+                <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+            </h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年8月13日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E5%BC%80%E5%8F%91'>开发</a></span>
+            
+        </div>
+        
+        <div class="post-content">
+            <p>我司客户端中使用了 React Native 0.54.3 版本，自接入开始，就出现了一类很诡异的 Crash，崩溃信息如下：</p>……
+        </div>
+        <p class="readmore"><a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/">阅读全文</a></p>
+    </article>
+    
+    
+    
+
+
+
+<ol class="page-navigator">
+    
+
+    
+    <li  class="current">
+        <a href="https://www.tylinux.com/post/">1</a>
+    </li>
+    
+    <li >
+        <a href="https://www.tylinux.com/post/page/2/">2</a>
+    </li>
+    
+    <li >
+        <a href="https://www.tylinux.com/post/page/3/">3</a>
+    </li>
+    
+
+    
+    <li class="next">
+        <a href="https://www.tylinux.com/post/page/2/">下一页</a>
+    </li>
+    
+</ol>
+
+
+
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="https://www.tylinux.com/">不正经的正经程序猿 By
+            tylinux</a>
+        
+    </div>
+    <br />
+    
+</footer>
+
+
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/" title="也折腾博云物联辣鸡网络摄像头（上）">也折腾博云物联辣鸡网络摄像头（上）</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/" title="Android 设备上使用 Termux 安装运行 gitlab-runner">Android 设备上使用 Termux 安装运行 gitlab-runner</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/one_small_cocoapods_issue/" title="CocoaPods 小坑一例">CocoaPods 小坑一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/" title="翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/" title="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全 (2)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E5%BC%80%E5%8F%91/">开发 (3)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件 (5)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用 (4)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究 (8)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

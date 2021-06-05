@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh_CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    
+
+    <title>CocoaPods 小坑一例 | 不正经的正经程序猿</title>
+    <meta property="og:title" content="CocoaPods 小坑一例 - 不正经的正经程序猿">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2021-05-17T18:25:58&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2021-05-17T18:25:58&#43;08:00'>
+        
+    <meta name="Keywords" content="iOS,macOS,逆向,Reverse,RE,越狱,jailbreak,xnure">
+    <meta name="description" content="CocoaPods 小坑一例">
+        
+    <meta name="author" content="tylinux">
+    <meta property="og:url" content="https://www.tylinux.com/post/one_small_cocoapods_issue/">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+    
+    
+    
+</head>
+
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.tylinux.com/">
+                        不正经的正经程序猿
+                    </a>
+                
+                <p class="description">一个人的命运啊，当然要靠自我奋斗，但是也要考虑历史的行程</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.tylinux.com/">首页</a>
+                    
+                    <a  href="https://www.tylinux.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.tylinux.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">CocoaPods 小坑一例</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2021年5月17日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E5%BC%80%E5%8F%91'>开发</a></span>
+            
+        </div>
+        
+        
+        <div class="post-meta">
+            <span id="busuanzi_container_page_pv">|<span id="busuanzi_value_page_pv"></span><span>
+                    阅读</span></span>
+        </div>
+        
+        
+        <div class="post-content">
+            <h2 id="错误信息">错误信息</h2>
+<pre><code>[!] The 'Pods-xxx' target has libraries with conflicting names: libflipper-rsocket.a.
+</code></pre><h2 id="背景信息">背景信息</h2>
+<p>公司使用的是二进制化后的 pod，podspec 中使用 <code>vendored_libraries</code> 引入了 <code>libFlipper-RSocket.a</code>，然而在 <code>pod install</code> 的时候，出现了如上的错误，搜索一下，别人出现这个问题是两个不同的 pod 引用了相同的 .a 文件。但是我可以肯定我这里是没有这个问题的。</p>
+<h2 id="排查">排查</h2>
+<p>根据报错的信息，找到源码位置：<code>lib/cocoapods/installer/xcode/target_validator.rb</code>，如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">verify_no_duplicate_framework_and_library_names</span>
+  aggregate_targets<span style="color:#f92672">.</span>each <span style="color:#66d9ef">do</span> <span style="color:#f92672">|</span>aggregate_target<span style="color:#f92672">|</span>
+    aggregate_target<span style="color:#f92672">.</span>user_build_configurations<span style="color:#f92672">.</span>each_key <span style="color:#66d9ef">do</span> <span style="color:#f92672">|</span>config<span style="color:#f92672">|</span>
+      pod_targets <span style="color:#f92672">=</span> aggregate_target<span style="color:#f92672">.</span>pod_targets_for_build_configuration(config)
+      file_accessors <span style="color:#f92672">=</span> pod_targets<span style="color:#f92672">.</span>flat_map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:file_accessors</span>)<span style="color:#f92672">.</span>select { <span style="color:#f92672">|</span>fa<span style="color:#f92672">|</span> fa<span style="color:#f92672">.</span>spec<span style="color:#f92672">.</span>library_specification? }
+
+      frameworks <span style="color:#f92672">=</span> file_accessors<span style="color:#f92672">.</span>flat_map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:vendored_frameworks</span>)<span style="color:#f92672">.</span>uniq<span style="color:#f92672">.</span>map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:basename</span>)
+      frameworks <span style="color:#f92672">+=</span> pod_targets<span style="color:#f92672">.</span>select { <span style="color:#f92672">|</span>pt<span style="color:#f92672">|</span> pt<span style="color:#f92672">.</span>should_build? <span style="color:#f92672">&amp;&amp;</span> pt<span style="color:#f92672">.</span>build_as_framework? }<span style="color:#f92672">.</span>map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:product_module_name</span>)<span style="color:#f92672">.</span>uniq
+      verify_no_duplicate_names(frameworks, aggregate_target<span style="color:#f92672">.</span>label, <span style="color:#e6db74">&#34;frameworks&#34;</span>)
+
+      libraries <span style="color:#f92672">=</span> file_accessors<span style="color:#f92672">.</span>flat_map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:vendored_libraries</span>)<span style="color:#f92672">.</span>uniq<span style="color:#f92672">.</span>map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:basename</span>)
+      libraries <span style="color:#f92672">+=</span> pod_targets<span style="color:#f92672">.</span>select { <span style="color:#f92672">|</span>pt<span style="color:#f92672">|</span> pt<span style="color:#f92672">.</span>should_build? <span style="color:#f92672">&amp;&amp;</span> pt<span style="color:#f92672">.</span>build_as_library? }<span style="color:#f92672">.</span>map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:product_name</span>)
+      verify_no_duplicate_names(libraries, aggregate_target<span style="color:#f92672">.</span>label, <span style="color:#e6db74">&#34;libraries&#34;</span>)
+    <span style="color:#66d9ef">end</span>
+  <span style="color:#66d9ef">end</span>
+<span style="color:#66d9ef">end</span>
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">verify_no_duplicate_names</span>(names, label, type)
+  duplicates <span style="color:#f92672">=</span> names<span style="color:#f92672">.</span>group_by { <span style="color:#f92672">|</span>n<span style="color:#f92672">|</span> n<span style="color:#f92672">.</span>to_s<span style="color:#f92672">.</span>downcase }<span style="color:#f92672">.</span>select { <span style="color:#f92672">|</span>_, v<span style="color:#f92672">|</span> v<span style="color:#f92672">.</span>size <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">1</span> }<span style="color:#f92672">.</span>keys
+  <span style="color:#66d9ef">unless</span> duplicates<span style="color:#f92672">.</span>empty?
+    <span style="color:#66d9ef">raise</span> <span style="color:#66d9ef">Informative</span>, <span style="color:#e6db74">&#34;The &#39;</span><span style="color:#e6db74">#{</span>label<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39; target has &#34;</span> \
+          <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">#{</span>type<span style="color:#e6db74">}</span><span style="color:#e6db74"> with conflicting names: </span><span style="color:#e6db74">#{</span>duplicates<span style="color:#f92672">.</span>to_sentence<span style="color:#e6db74">}</span><span style="color:#e6db74">.&#34;</span>
+  <span style="color:#66d9ef">end</span>
+<span style="color:#66d9ef">end</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>重点是如下几行：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#75715e"># 获取所有 pod 里的 vendored_libraries</span>
+libraries <span style="color:#f92672">=</span> file_accessors<span style="color:#f92672">.</span>flat_map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:vendored_libraries</span>)<span style="color:#f92672">.</span>uniq<span style="color:#f92672">.</span>map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:basename</span>)
+
+<span style="color:#75715e"># 再拼上所有需要编译生成 .a 的</span>
+libraries <span style="color:#f92672">+=</span> pod_targets<span style="color:#f92672">.</span>select { <span style="color:#f92672">|</span>pt<span style="color:#f92672">|</span> pt<span style="color:#f92672">.</span>should_build? <span style="color:#f92672">&amp;&amp;</span> pt<span style="color:#f92672">.</span>build_as_library? }<span style="color:#f92672">.</span>map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:product_name</span>)
+
+<span style="color:#75715e"># 验证有没有同名的</span>
+verify_no_duplicate_names(libraries, aggregate_target<span style="color:#f92672">.</span>label, <span style="color:#e6db74">&#34;libraries&#34;</span>)
+</code></pre></td></tr></table>
+</div>
+</div><p>通过断点发现了问题， <code>libFlipper-RSocket.a</code> 即在 <code>vendored_libraries</code> 里，也在需要编译的 .a 里，但是筛查 <code>Pods/Flipper-RSocket</code> 目录下也没有需要编译的文件，这是怎么回事?</p>
+<p>排查思路很明确， 看看 <code>should_build</code> 为什么会是 true。 找到给 <code>.should_build</code> 赋值的地方：<code>lib/cocoapods/target/pod_target.rb:280</code>:</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">should_build?</span>
+  <span style="color:#66d9ef">return</span> @should_build <span style="color:#66d9ef">if</span> defined? @should_build
+  accessors <span style="color:#f92672">=</span> file_accessors<span style="color:#f92672">.</span>select { <span style="color:#f92672">|</span>fa<span style="color:#f92672">|</span> fa<span style="color:#f92672">.</span>spec<span style="color:#f92672">.</span>library_specification? }
+  source_files <span style="color:#f92672">=</span> accessors<span style="color:#f92672">.</span>flat_map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:source_files</span>)
+  source_files <span style="color:#f92672">-=</span> accessors<span style="color:#f92672">.</span>flat_map(<span style="color:#f92672">&amp;</span><span style="color:#e6db74">:headers</span>)
+  @should_build <span style="color:#f92672">=</span> <span style="color:#f92672">!</span>source_files<span style="color:#f92672">.</span>empty?
+<span style="color:#66d9ef">end</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>OK, source_file 目录下的文件，除去头文件，如果剩下的不为空，should_build 就为 true。 下面来看 <code>Flipper-RSocket.podspec</code> 里 source_files  是怎么定义的：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby">spec<span style="color:#f92672">.</span>source_files <span style="color:#f92672">=</span> <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;rsocket/benchmarks/*&#34;</span>,
+                       <span style="color:#e6db74">&#34;rsocket/framing/*&#34;</span>,
+                       <span style="color:#e6db74">&#34;rsocket/internal/*&#34;</span>,
+                       <span style="color:#e6db74">&#34;rsocket/statemachine/*&#34;</span>,
+                       <span style="color:#e6db74">&#34;rsocket/transports/*&#34;</span>,
+                       <span style="color:#e6db74">&#34;rsocket/transports/**/*&#34;</span>,
+                       <span style="color:#e6db74">&#34;yarpl/observable/*&#34;</span>,
+                       <span style="color:#e6db74">&#34;yarpl/flowable/*&#34;</span>,
+                       <span style="color:#e6db74">&#34;rsocket/*&#34;</span><span style="color:#f92672">]</span>                     
+</code></pre></td></tr></table>
+</div>
+</div><p>问题出在了 <code>/*</code> 上，在 <code>rsocket/benchmarks/</code> 目录下，除了源文件和头文件之外，还有 <code>CMakeLists.txt</code> 和 <code>README.md</code> 文件，导致判断 <code>source_files</code> 不为空，should_build 就为 true 了。</p>
+<h2 id="解决方案">解决方案</h2>
+<p>有几个方案，一是 <code>source_files</code> 中只包含常见源码和头文件类型，如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby">spec<span style="color:#f92672">.</span>source_files <span style="color:#f92672">=</span> <span style="color:#f92672">[</span>
+    <span style="color:#e6db74">&#34;rsocket/benchmarks/*.{h,hpp,c,cpp,mm,m}&#34;</span>,
+    <span style="color:#e6db74">&#34;rsocket/framing/*.{h,hpp,c,cpp,mm,m}&#34;</span>,
+    <span style="color:#e6db74">&#34;rsocket/internal/*.{h,hpp,c,cpp,mm,m}&#34;</span>,
+    <span style="color:#e6db74">&#34;rsocket/statemachine/*.{h,hpp,c,cpp,mm,m}&#34;</span>,
+    <span style="color:#e6db74">&#34;rsocket/transports/*.{h,hpp,c,cpp,mm,m}&#34;</span>,
+    <span style="color:#e6db74">&#34;rsocket/transports/**/*.{h,hpp,c,cpp,mm,m}&#34;</span>,
+    <span style="color:#e6db74">&#34;yarpl/observable/*.{h,hpp,c,cpp,mm,m}&#34;</span>,
+    <span style="color:#e6db74">&#34;yarpl/flowable/*.{h,hpp,c,cpp,mm,m}&#34;</span>,
+    <span style="color:#e6db74">&#34;rsocket/*.{h,hpp,c,cpp,mm,m}&#34;</span>,
+<span style="color:#f92672">]</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>二是 exclude 掉 <code>.txt</code> 和 <code>.md</code> 文件，如下：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby">spec<span style="color:#f92672">.</span>exclude_files <span style="color:#f92672">=</span> <span style="color:#f92672">[</span>
+  <span style="color:#e6db74">&#34;rsocket/**/*.{txt,md}&#34;</span>
+<span style="color:#f92672">]</span>
+</code></pre></td></tr></table>
+</div>
+</div>
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.tylinux.com/">tylinux</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.tylinux.com/post/one_small_cocoapods_issue/">https://www.tylinux.com/post/one_small_cocoapods_issue/</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/downgrade-iOS-13-3-to-13-2-3/">iPhone SE 降级 iOS 13.2.3</a></li>
+        
+        <li><a href="/post/fix-a-react-native-crash-on-mutex/">React Native 疑难 Crash 一例</a></li>
+        
+        <li><a href="/post/upgrade-from-iOS-11-1-2-to-iOS-11-3-1-with-blob/">使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1</a></li>
+        
+        <li><a href="/post/Remount-rootfs-after-iOS-11-3/">(译) 在 iOS 11.3 之后的系统中 remount RootFS 为可读写</a></li>
+        
+        <li><a href="/post/how-dumpdecrypted-dylib-works/">dumpdecrypted.dylib 原理分析</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/iOS'>iOS</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "tylinux/BlogComments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2021 <a href="https://www.tylinux.com/">不正经的正经程序猿 By
+            tylinux</a>
+        
+    </div>
+    <br />
+    
+</footer>
+
+
+
+<script type="text/javascript">
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [['$', '$']],
+            processEscapes: true
+        }
+    };
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+<script type="text/javascript" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" async></script>
+
+
+
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.tylinux.com/">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hack_boyun_ipcamera_01/" title="也折腾博云物联辣鸡网络摄像头（上）">也折腾博云物联辣鸡网络摄像头（上）</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/install_gitlab_runner_on_android/" title="Android 设备上使用 Termux 安装运行 gitlab-runner">Android 设备上使用 Termux 安装运行 gitlab-runner</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/one_small_cocoapods_issue/" title="CocoaPods 小坑一例">CocoaPods 小坑一例</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/add_usb_and_dc_power_for_hp_elite_pad_1000_g2/" title="翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口">翻车日记0: HP ElitePad 1000 G2 加装 USB 2.0 接口</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix_jietu_crash_with_reverse_method/" title="利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题">利用逆向知识修复 『Jietu.app 』在 macOS Big Sur 下的崩溃问题</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/downgrade-iOS-13-3-to-13-2-3/" title="iPhone SE 降级 iOS 13.2.3">iPhone SE 降级 iOS 13.2.3</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/build-virtualbox-on-macOS-10.15/" title="macOS 10.15.1 下编译 VirtualBox 6.1.0">macOS 10.15.1 下编译 VirtualBox 6.1.0</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/hackintosh-with-amd-ryzen-3700x/" title="喜提新开(you)发(xi)机">喜提新开(you)发(xi)机</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/develop-mcs51-on-macOS/" title="macOS 下开发 51 单片机应用">macOS 下开发 51 单片机应用</a>
+    </li>
+    
+    <li>
+        <a href="https://www.tylinux.com/post/fix-a-react-native-crash-on-mutex/" title="React Native 疑难 Crash 一例">React Native 疑难 Crash 一例</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.tylinux.com/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8/">二进制安全 (2)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E5%BC%80%E5%8F%91/">开发 (3)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%A1%AC%E4%BB%B6/">硬件 (5)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8/">系统应用 (4)</a></li>
+    
+    <li><a href="https://www.tylinux.com/categories/%E9%80%86%E5%90%91%E7%A0%94%E7%A9%B6/">逆向研究 (8)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.tylinux.com/tags/51/">51</a>
+    
+    <a href="https://www.tylinux.com/tags/Console/">Console</a>
+    
+    <a href="https://www.tylinux.com/tags/Cydia/">Cydia</a>
+    
+    <a href="https://www.tylinux.com/tags/Jailbreak/">Jailbreak</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/SHSH/">SHSH</a>
+    
+    <a href="https://www.tylinux.com/tags/android/">android</a>
+    
+    <a href="https://www.tylinux.com/tags/arm/">arm</a>
+    
+    <a href="https://www.tylinux.com/tags/docker/">docker</a>
+    
+    <a href="https://www.tylinux.com/tags/hackintosh/">hackintosh</a>
+    
+    <a href="https://www.tylinux.com/tags/iOS/">iOS</a>
+    
+    <a href="https://www.tylinux.com/tags/jenkins/">jenkins</a>
+    
+    <a href="https://www.tylinux.com/tags/linux/">linux</a>
+    
+    <a href="https://www.tylinux.com/tags/macOS/">macOS</a>
+    
+    <a href="https://www.tylinux.com/tags/overflow/">overflow</a>
+    
+    <a href="https://www.tylinux.com/tags/pwn/">pwn</a>
+    
+    <a href="https://www.tylinux.com/tags/reverse/">reverse</a>
+    
+    <a href="https://www.tylinux.com/tags/ryzen/">ryzen</a>
+    
+    <a href="https://www.tylinux.com/tags/synology/">synology</a>
+    
+    <a href="https://www.tylinux.com/tags/tweak/">tweak</a>
+    
+    <a href="https://www.tylinux.com/tags/virtualbox/">virtualbox</a>
+    
+    <a href="https://www.tylinux.com/tags/%E5%8D%95%E7%89%87%E6%9C%BA/">单片机</a>
+    
+    <a href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/">硬件</a>
+    
+</div>
+    </section>
+
+    
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.tylinux.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>硬件 on 不正经的正经程序猿</title>
+    <link>https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/</link>
+    <description>Recent content in 硬件 on 不正经的正经程序猿</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh_CN</language>
+    <lastBuildDate>Fri, 27 Sep 2019 00:41:14 +0800</lastBuildDate><atom:link href="https://www.tylinux.com/tags/%E7%A1%AC%E4%BB%B6/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>macOS 下开发 51 单片机应用</title>
+      <link>https://www.tylinux.com/post/develop-mcs51-on-macOS/</link>
+      <pubDate>Fri, 27 Sep 2019 00:41:14 +0800</pubDate>
+      
+      <guid>https://www.tylinux.com/post/develop-mcs51-on-macOS/</guid>
+      <description>&lt;p&gt;最近 DIY 之心又又又又复活了，翻出来吃灰多年的 51 开发板，重新学习一下 51。现在主力系统已经换成了 macOS，在折腾环境搭建的过程中，踩了一丢丢坑，特此记录一下。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
