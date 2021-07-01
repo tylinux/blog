@@ -6,7 +6,16 @@
     <description>Recent content in Posts on 不正经的正经程序猿</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh_CN</language>
-    <lastBuildDate>Thu, 03 Jun 2021 00:54:26 +0800</lastBuildDate><atom:link href="https://www.tylinux.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 30 Jun 2021 11:07:27 +0800</lastBuildDate><atom:link href="https://www.tylinux.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>在 PVE 中安装 HAOS</title>
+      <link>https://www.tylinux.com/post/install_hassos_in_pve/</link>
+      <pubDate>Wed, 30 Jun 2021 11:07:27 +0800</pubDate>
+      
+      <guid>https://www.tylinux.com/post/install_hassos_in_pve/</guid>
+      <description> 创建 Linux 2.6-5.x 虚拟机，不使用 CD/DVD  勾上 Qemu Agent  硬盘随便选一个，反正等会儿要删掉  CPU/内存看着给，1C1G 或者 2C2G 应该就够了 添加一个网络设备  完成 在『Hardware』 中 rmeove 掉默认创建的硬盘 BIOS 改为 &amp;ldquo;OVMF(UEFI)&amp;rdquo;, 并新建一个 &amp;ldquo;EFI Disk&amp;rdquo;（如果没有的话） ssh 登录到 PVE 实例中，从 https://github.com/home-assistant/operating-system/releases/ 下载最新版本的 haos 镜像，主要选择 vmdk 版本的，比如 haos_ova-6.1.vmdk.zip。 解压下载好的镜像后，unzip解压， 然后 qm importdisk 10x haos_ova-6.1.vmdk local-lvm 这样，导入磁盘，注意替换 10x 为创建的 haos 虚拟机 id 在 『hardware』界面选择 unused Disk，编辑，添加，注意要改成 SATA  在 『options-Boot Order』 处，仅把 sata0 选中，去掉其他的设备。 开机  </description>
+    </item>
+    
     <item>
       <title>也折腾博云物联辣鸡网络摄像头（上）</title>
       <link>https://www.tylinux.com/post/hack_boyun_ipcamera_01/</link>
