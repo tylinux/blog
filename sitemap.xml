@@ -2,13 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://www.tylinux.com/categories/</loc>
-    <lastmod>2021-06-30T11:07:27+08:00</lastmod>
-  </url><url>
     <loc>https://www.tylinux.com/post/</loc>
-    <lastmod>2021-06-30T11:07:27+08:00</lastmod>
+    <lastmod>2021-11-05T18:46:09+08:00</lastmod>
   </url><url>
     <loc>https://www.tylinux.com/</loc>
+    <lastmod>2021-11-05T18:46:09+08:00</lastmod>
+  </url><url>
+    <loc>https://www.tylinux.com/post/fiber_infomation_about_fiber/</loc>
+    <lastmod>2021-11-05T18:46:09+08:00</lastmod>
+  </url><url>
+    <loc>https://www.tylinux.com/categories/</loc>
     <lastmod>2021-06-30T11:07:27+08:00</lastmod>
   </url><url>
     <loc>https://www.tylinux.com/post/install_hassos_in_pve/</loc>
