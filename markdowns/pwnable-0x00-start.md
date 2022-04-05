@@ -29,7 +29,7 @@ Let's start the CTF:
 `pdf` 反汇编 function
 
 如下：
-![-w1118](https://i.loli.net/2019/02/13/5c6306387eeb8.jpg)
+![-w1118](https://i.loli.net/2019/02/13/5c6306387eeb8.jpg ':size=600')
 
  
 汇编很短，简单注释一下（可以用 `objdump -M intel start` 导出）：
@@ -133,11 +133,11 @@ ESP/ECX ---> L +----------------+    <---
 
 使用 `peda` 载入可执行程序后，`checksec` 分析应用启用的安全措施，如下：
 
-![-w180](https://i.loli.net/2019/02/13/5c6306380262c.jpg)
+![-w180](https://i.loli.net/2019/02/13/5c6306380262c.jpg ':size=600')
 
 显示 NX（Not Execute）已启用，然而 `pwntools` 里的 `checksec` 命令检查 NX 是 disable 掉的，事实上也确实是 disable 的。
 
-![-w493](https://i.loli.net/2019/02/13/5c6306380cd2d.jpg)
+![-w493](https://i.loli.net/2019/02/13/5c6306380cd2d.jpg ':size=600')
 
 既然没有任何安全措施，栈也是可执行的，我们可以直接把 shellcode 布置在栈上，然后构造参数通过 `int 80` 调用 `sys_execve` 执行 `/bin/sh`。
 

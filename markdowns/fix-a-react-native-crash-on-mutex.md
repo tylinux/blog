@@ -29,7 +29,7 @@ Application Specific Information:
 
 崩溃线程没有调用栈信息，类似下图：
 
-![](https://i.loli.net/2019/08/13/BUi4wILt6MKRN2j.jpg)
+![](https://i.loli.net/2019/08/13/BUi4wILt6MKRN2j.jpg ':size=400')
 
 经过观察，此类崩溃还有一个共同特点，就是主线程都有调用 `exit`，意味着程序正在退出，在退出过程中发生的崩溃。主线程调用栈如下：
 
@@ -58,7 +58,7 @@ Thread 0:
 
 一番搜索，发现 `RCTFont.mm` 有个类似的 Crash: [issue](https://github.com/facebook/react-native/issues/13588)，修复[PR](https://github.com/facebook/react-native/pull/22607/files)。修改内容如下图：
 
-![](https://i.loli.net/2019/08/13/SmBwNZrKGaPCA5J.jpg)
+![](https://i.loli.net/2019/08/13/SmBwNZrKGaPCA5J.jpg ':size=400')
 
 就是把 `static std::mutex fontCacheMutex;` 改成了 `static std::mutex *fontCacheMutex`，普通的 `std::mutex` 变量改成了指针变量。区别在哪里呢？
 
@@ -66,9 +66,9 @@ Thread 0:
 
 那为什么主线程 exit 的时候，`fontCacheMutex` 就被释放掉了呢？这就要从 static 对象的生命周期说起了（我也是现查的ಥ_ಥ）
 
-编写如下 C++ 代码：
+编写如下 cpp 代码：
 
-```c++
+```cpp
 #include <mutex>
 
 void test() {
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 
 编译成可执行文件，然后 IDA Pro 反编译一下：
 
-```c++
+```cpp
 void test(void)
 {
   if ( !`guard variable for'test(void)::s_mutex )
@@ -98,7 +98,7 @@ void test(void)
 }
 ```
 
-`guard_for_bar` 啥的是编译器生成的用来保证线程安全和一次初始化的变量，咱不关注，重点是 ` __cxa_atexit(&std::__1::mutex::~mutex, &test(void)::s_mutex, &_mh_execute_header);` 一行，`__cxa_atexit` 是用来注册当调用 `exit`，或者动态库被卸载时执行的函数的，这里注册的是 `std::__1::mutex::~mutex`。就是 `s_mutex` 的析构函数。此函数会在 exit 时被调用，销毁此对象。
+`guard_for_bar` 啥的是编译器生成的用来保证线程安全和一次初始化的变量，咱不关注，重点是 `__cxa_atexit(&std::__1::mutex::~mutex, &test(void)::s_mutex, &_mh_execute_header);` 一行，`__cxa_atexit` 是用来注册当调用 `exit`，或者动态库被卸载时执行的函数的，这里注册的是 `std::__1::mutex::~mutex`。就是 `s_mutex` 的析构函数。此函数会在 exit 时被调用，销毁此对象。
 
 所以，真相就是：`static std::mutex fontCacheMutex;` 会在 `exit` 时被析构掉，之后再 lock 此变量就 GG 了！
 
@@ -137,6 +137,7 @@ JSContext *contextForGlobalContextRef(JSGlobalContextRef contextRef)
 
 Bug Fixed!
 
-## 参考资料:
+## 参考资料
+
 1. [__cxa_atexit](http://refspecs.linuxbase.org/LSB_3.0.0/LSB-PDA/LSB-PDA/baselib---cxa-atexit.html)
 2. [深入理解函数内静态局部变量初始化](https://www.cnblogs.com/william-cheung/p/4831085.html)

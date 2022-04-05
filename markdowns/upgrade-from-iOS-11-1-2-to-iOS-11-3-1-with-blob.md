@@ -18,7 +18,7 @@
 ```
 
 2. 打开 iPad 上的 NonceSet112 App，在其获取 Root 权限之后，将 `boot generator` 设置为刚刚找到的值，并点击保存
-![](https://i.loli.net/2018/12/24/5c20fa9b75be1.jpg)
+![](https://i.loli.net/2018/12/24/5c20fa9b75be1.jpg ':size=600')
 
 ## futurerestore
 1. 解压 iOS 11.4.1 的 IPSW 文件，复制 `BuildManifest.plist` 和 `Firmware/all_flash/sep-firmware.j81.RELEASE.im4p` 文件 到 11.3.1 IPSW 文件同一目录下备用。

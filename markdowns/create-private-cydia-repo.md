@@ -102,7 +102,7 @@ Name: 12306daemon
 
 ## 测试
 打开 Cydia ，在源编辑页面选择 ”添加“，输入服务器地：
-![](/images/15033805128579.jpg)
+![](/images/15033805128579.jpg ':size=600')
 
 
 点击 “添加”后，会自动更新源缓存，下载Release 和 Packages.bz2 文件。更新完成后，即可 ”搜索“ 中搜索安装我们的 Tweak 了。 Enjoy it.

@@ -16,12 +16,16 @@
 
 眼尖的同志可能一眼就发现了，源码里没有 `main` 函数（废话，毕竟编译出来就是个 dylib）。代码的入口是：
 
-``` c
+```bash
+echo "Hello"
+```
+
+```c
 __attribute__((constructor))
 static void dumpexecutable() {
-	printf("mach-o decryption dumper\n\n");
-	printf("DISCLAIMER: This tool is only meant for security research purposes, not for application crackers.");
-	_dyld_register_func_for_add_image(&image_added);
+    printf("mach-o decryption dumper\n\n");
+    printf("DISCLAIMER: This tool is only meant for security research purposes, not for application crackers.");
+    _dyld_register_func_for_add_image(&image_added);
 }
 ```
 
@@ -31,7 +35,7 @@ static void dumpexecutable() {
 
 `_dyld_register_func_for_add_image` 这个函数声明在 `mach-o/dyld.h` 文件里，如下：
 
-```
+```c
 /*
  * The following functions allow you to install callbacks which will be called   
  * by dyld whenever an image is loaded or unloaded.  During a call to _dyld_register_func_for_add_image()
@@ -54,9 +58,9 @@ image_added 方法依旧很短，只有三行，如下：
 
 ``` c
 static void image_added(const struct mach_header *mh, intptr_t slide) {
-	Dl_info image_info;
-	int result = dladdr(mh, &image_info);
-	dumptofile(image_info.dli_fname, mh);
+    Dl_info image_info;
+    int result = dladdr(mh, &image_info);
+    dumptofile(image_info.dli_fname, mh);
 }
 ```
 
@@ -64,10 +68,10 @@ static void image_added(const struct mach_header *mh, intptr_t slide) {
 
 ``` c
 typedef struct dl_info {
-	const char  *dli_fname;     /* Pathname of shared object */
-	void        *dli_fbase;     /* Base address of shared object */
-	const char  *dli_sname;     /* Name of nearest symbol */
-	void        *dli_saddr;     /* Address of nearest symbol */
+    const char  *dli_fname;     /* Pathname of shared object */
+    void        *dli_fbase;     /* Base address of shared object */
+    const char  *dli_sname;     /* Name of nearest symbol */
+    void        *dli_saddr;     /* Address of nearest symbol */
 } Dl_info;
 ```
 
@@ -148,7 +152,7 @@ typedef struct dl_info {
 
 首先是定义了一波要使用的变量：
 
-```objectivec
+```c
 struct load_command *lc;
 struct encryption_info_command *eic;
 struct fat_header *fh;
@@ -166,34 +170,34 @@ char *tmp;
 if (realpath(path, rpath) == NULL) {
     strlcpy(rpath, path, sizeof(rpath));
 }
-	
+    
 /* extract basename */
 tmp = strrchr(rpath, '/');
 printf("\n\n");
 if (tmp == NULL) {
-	printf("[-] Unexpected error with filename.\n");
-	_exit(1);
+    printf("[-] Unexpected error with filename.\n");
+    _exit(1);
 } else {
-	printf("[+] Dumping %s\n", tmp+1);
+    printf("[+] Dumping %s\n", tmp+1);
 }
 ```
 
 做完了前边的定义和判断，下边就要开始真正地工作了，首先是通过文件头判断二进制文件架构：
 
-```objectivec
+```c
 /* detect if this is a arm64 binary */
 if (mh->magic == MH_MAGIC_64) {
-	lc = (struct load_command *)((unsigned char *)mh + sizeof(struct mach_header_64));
-	NSLog(@"[+] detected 64bit ARM binary in memory.\n");
+    lc = (struct load_command *)((unsigned char *)mh + sizeof(struct mach_header_64));
+    NSLog(@"[+] detected 64bit ARM binary in memory.\n");
 } else { /* we might want to check for other errors here, too */
-	lc = (struct load_command *)((unsigned char *)mh + sizeof(struct mach_header));
-	NSLog(@"[+] detected 32bit ARM binary in memory.\n");
+    lc = (struct load_command *)((unsigned char *)mh + sizeof(struct mach_header));
+    NSLog(@"[+] detected 32bit ARM binary in memory.\n");
 }
 ```
 
 mh 是一个 `struct mach_header` 结构体的指针，其定义如下：
 
-```C
+```c
 /*
  * The 32-bit mach header appears at the very beginning of the object file for
  * 32-bit architectures.
@@ -230,6 +234,7 @@ struct mach_header_64 {
 /* Constant for the magic field of the mach_header_64 (64-bit architectures) */
 #define MH_MAGIC_64 0xfeedfacf /* the 64-bit mach magic number */
 ```
+
 这里通过检查 `magic` 字段来检查当前镜像架构，之后是
 
 ```c
@@ -238,20 +243,20 @@ lc = (struct load_command *)((unsigned char *)mh + sizeof(struct mach_header));
 
 `lc` 是一个指向 `struct load_command` 结构体的指针，如下图所示，在Mach-O 文件中，LoadCommands位于 Header 之后，所以这里以 Header 的大小作为偏移算出来 LoadCommand 的起始地址并赋值给 `lc`
 
-![](https://i.loli.net/2018/03/12/5aa678713bd28.jpg)
+![](https://i.loli.net/2018/03/12/5aa678713bd28.jpg ':size=600')
 
 之后的这段有点儿长，我们从外向里看：循环遍历每一个 LoadComand，如果存在 `LC_ENCRYPTION_INFO` 这个 Command，说明当前镜像是进行过加密的，执行解密操作。否则代表当前镜像未加密，无需解密，程序结束运行。
 
-```objectivec
+```c
 /* searching all load commands for an LC_ENCRYPTION_INFO load command */
 for (i=0; i<mh->ncmds; i++) {
-	/*printf("Load Command (%d): %08x\n", i, lc->cmd);*/
-		
-	if (lc->cmd == LC_ENCRYPTION_INFO || lc->cmd == LC_ENCRYPTION_INFO_64) {
-	   ...
-	   return;
-	}
-	lc = (struct load_command *)((unsigned char *)lc + lc->cmdsize);
+    /*printf("Load Command (%d): %08x\n", i, lc->cmd);*/
+        
+    if (lc->cmd == LC_ENCRYPTION_INFO || lc->cmd == LC_ENCRYPTION_INFO_64) {
+       ...
+       return;
+    }
+    lc = (struct load_command *)((unsigned char *)lc + lc->cmdsize);
 }
 NSLog(@"[-] This mach-o file is not encrypted. Nothing was decrypted.\n");
 return;
@@ -264,15 +269,14 @@ eic = (struct encryption_info_command *)lc;
 
 /* If this load command is present, but data is not crypted then exit */
 if (eic->cryptid == 0) {
-	break;
+    break;
 }
 ```
 
 如果 cryptid 为 1，说明镜像是加密的，接着执行：
 首先计算 cryptid 距镜像开始的偏移：
 
-
-```objectivec
+```c
 off_cryptid = (off_t)((void*)&eic->cryptid - (void*)mh;
 
 
@@ -285,12 +289,11 @@ NSLog(@"[+] Opening %s for reading.\n", rpath);
 
 然后以只读模式打开镜像文件，读入镜像文件头信息:
 
-
-```objectivec
+```c
 fd = open(rpath, O_RDONLY);
 if (fd == -1) {
     NSLog(@"[-] Failed opening.\n");
-	return;
+    return;
 }
 
 NSLog(@"[+] Reading header\n");
@@ -303,27 +306,26 @@ NSLog(@"[+] Detecting header type\n");
 fh = (struct fat_header *)buffer;
 ```
 
-这里又出现了一个新的结构体: `struct fat_header`。FAT Bianry 是 iOS/macOS 系统上特有的一种文件格式，可以同时包含多种架构的二进制镜像，其文件结构如下：
-![](https://i.loli.net/2018/03/12/5aa6787178d22.jpg)
+![](https://i.loli.net/2018/03/12/5aa6787178d22.jpg ':size=600')
 
 可以看到，FAT Binary 就是将多个 Mach-O 镜像拼到一起之后，在最前边加了个 Fat Header。
 可能你要问了，之前不是传进来一个 `(struct mach_header *)mh` 了嘛，这里为嘛还要自己读入一个呢？这里要注意了，传入的那个是 FAT Binary 中真正要读入到内存中执行的镜像的 Mach-O Header，而我们读入的，是整个 FAT Binary 的 FAT Header。FAT Header 定义如下：
 
 ```c
-#define FAT_MAGIC	0xcafebabe
-#define FAT_CIGAM	0xbebafeca	/* NXSwapLong(FAT_MAGIC) */
+#define FAT_MAGIC 0xcafebabe
+#define FAT_CIGAM 0xbebafeca /* NXSwapLong(FAT_MAGIC) */
 
 struct fat_header {
-	uint32_t	magic;		/* FAT_MAGIC or FAT_MAGIC_64 */
-	uint32_t	nfat_arch;	/* number of structs that follow */
+    uint32_t magic;  /* FAT_MAGIC or FAT_MAGIC_64 */
+    uint32_t nfat_arch; /* number of structs that follow */
 };
 
 struct fat_arch {
-	cpu_type_t	cputype;	/* cpu specifier (int) */
-	cpu_subtype_t	cpusubtype;	/* machine specifier (int) */
-	uint32_t	offset;		/* file offset to this object file */
-	uint32_t	size;		/* size of this object file */
-	uint32_t	align;		/* alignment as a power of 2 */
+    cpu_type_t cputype; /* cpu specifier (int) */
+    cpu_subtype_t cpusubtype; /* machine specifier (int) */
+    uint32_t offset;  /* file offset to this object file */
+    uint32_t size;  /* size of this object file */
+    uint32_t align;  /* alignment as a power of 2 */
 };
 ```
 
@@ -333,35 +335,35 @@ struct fat_arch {
 
 如果镜像是 FAT Binary，循环遍历每一个 fat_arch，如果找到一个 fat_arch 中 cputype 和 subcputype 与传入的 mach_header(mh) 一致，则表明找到了当前加载镜像在 FAT Binary 中的位置。此时设置 fileoffs = (arch->offset)。注意，此处的 cputype、subcputype 和 offset 需要使用之前定义的 swap32 宏转为大端序再进行判断。
 
-```objectivec
+```c
 /* Is this a FAT file - we assume the right endianess */
 if (fh->magic == FAT_CIGAM) {
     NSLog(@"[+] Executable is a FAT image - searching for right architecture\n");
     arch = (struct fat_arch *)&fh[1];
-	 for (i=0; i < swap32(fh->nfat_arch); i++) {
-		if ((mh->cputype == swap32(arch->cputype)) && (mh->cpusubtype == swap32(arch->cpusubtype))) {
-			fileoffs = swap32(arch->offset);
-			NSLog(@"[+] Correct arch is at offset %u in the file\n", fileoffs);
-			break;
-		}
-		arch++;
-	}
-	if (fileoffs == 0) {
-		NSLog(@"[-] Could not find correct arch in FAT image\n");
-		_exit(1);
-	}
+     for (i=0; i < swap32(fh->nfat_arch); i++) {
+        if ((mh->cputype == swap32(arch->cputype)) && (mh->cpusubtype == swap32(arch->cpusubtype))) {
+            fileoffs = swap32(arch->offset);
+            NSLog(@"[+] Correct arch is at offset %u in the file\n", fileoffs);
+            break;
+        }
+        arch++;
+    }
+    if (fileoffs == 0) {
+        NSLog(@"[-] Could not find correct arch in FAT image\n");
+        _exit(1);
+    }
 } else if (fh->magic == MH_MAGIC || fh->magic == MH_MAGIC_64) {
-	NSLog(@"[+] Executable is a plain MACH-O image\n");
+    NSLog(@"[+] Executable is a plain MACH-O image\n");
 } else {
-	NSLog(@"[-] Executable is of unknown type\n");
-	return;
+    NSLog(@"[-] Executable is of unknown type\n");
+    return;
 }
 ```
 
 之后就是要生成解密之后的镜像了：
 首先是要生成目标文件路径，如果在 `Documents` 目录下生成失败，则换个文件名重新生成，如果还失败，报错退出。
 
-```objectivec
+```c
 NSString *docPath = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0];
             
 strlcpy(npath, docPath.UTF8String, sizeof(npath));
@@ -376,31 +378,31 @@ if (outfd == -1) {
      if (strncmp("/private/var/mobile/Applications/", rpath, 33) == 0) {
          NSLog(@"[-] Failed opening. Most probably a sandbox issue. Trying something different.\n");
          
-     	/* create new name */
-     	strlcpy(npath, "/private/var/mobile/Applications/", sizeof(npath));
-     	tmp = strchr(rpath+33, '/');
-     	if (tmp == NULL) {
-     		NSLog(@"[-] Unexpected error with filename.\n");
-     		return;
-     	}
-     	tmp++;
-     	*tmp++ = 0;
-     	strlcat(npath, rpath+33, sizeof(npath));
-     	strlcat(npath, "tmp/", sizeof(npath));
-     	strlcat(npath, buffer, sizeof(npath));
-     	NSLog(@"[+] Opening %s for writing.\n", npath);
-     	outfd = open(npath, O_RDWR|O_CREAT|O_TRUNC, 0644);
+         /* create new name */
+         strlcpy(npath, "/private/var/mobile/Applications/", sizeof(npath));
+         tmp = strchr(rpath+33, '/');
+         if (tmp == NULL) {
+             NSLog(@"[-] Unexpected error with filename.\n");
+             return;
+         }
+         tmp++;
+         *tmp++ = 0;
+         strlcat(npath, rpath+33, sizeof(npath));
+         strlcat(npath, "tmp/", sizeof(npath));
+         strlcat(npath, buffer, sizeof(npath));
+         NSLog(@"[+] Opening %s for writing.\n", npath);
+         outfd = open(npath, O_RDWR|O_CREAT|O_TRUNC, 0644);
      }
      if (outfd == -1) {
          NSLog(@"[-] Failed opening\n");
-     	return;
+         return;
      }
 }
 ```
 
 开始写入文件，首先计算加密数据在新文件中的偏移：
 
-```objectivec
+```c
 /* calculate address of beginning of crypted data */
 n = fileoffs + eic->cryptoff;
 
@@ -409,79 +411,79 @@ restsize = lseek(fd, 0, SEEK_END) - n - eic->cryptsize;
 
 然后把文件指针设置到文件开头，写入 FAT Binary 的前 n 字节
 
-```objectivec
+```c
 lseek(fd, 0, SEEK_SET);
 NSLog(@"[+] Copying the not encrypted start of the file\n");
 /* first copy all the data before the encrypted data */
 while (n > 0) {
-	toread = (n > sizeof(buffer)) ? sizeof(buffer) : n;
-	r = read(fd, buffer, toread);
-	if (r != toread) {
-		NSLog(@"[-] Error reading file\n");
-		return;
-	}
-	n -= r;
-	
-	r = write(outfd, buffer, toread);
-	if (r != toread) {
-		NSLog(@"[-] Error writing file\n");
-		return;
-	}
+    toread = (n > sizeof(buffer)) ? sizeof(buffer) : n;
+    r = read(fd, buffer, toread);
+    if (r != toread) {
+        NSLog(@"[-] Error reading file\n");
+        return;
+    }
+    n -= r;
+    
+    r = write(outfd, buffer, toread);
+    if (r != toread) {
+        NSLog(@"[-] Error writing file\n");
+        return;
+    }
 }
 ```
 
 接着把已解密的部分写入到文件中：
 
-```objectivec
+```c
 /* now write the previously encrypted data */
 NSLog(@"[+] Dumping the decrypted data into the file\n");
 r = write(outfd, (unsigned char *)mh + eic->cryptoff, eic->cryptsize);
 if (r != eic->cryptsize) {
-	NSLog(@"[-] Error writing file\n");
-	return;
+    NSLog(@"[-] Error writing file\n");
+    return;
 }
 ```
 
 把剩下的部分（其他架构的镜像）写入到文件中：
 
-```objectivec
+```c
 /* and finish with the remainder of the file */
 n = restsize;
 lseek(fd, eic->cryptsize, SEEK_CUR);
 NSLog(@"[+] Copying the not encrypted remainder of the file\n");
 while (n > 0) {
-	toread = (n > sizeof(buffer)) ? sizeof(buffer) : n;
-	r = read(fd, buffer, toread);
-	if (r != toread) {
-		NSLog(@"[-] Error reading file\n");
-		return;
-	}
-	n -= r;
-	
-	r = write(outfd, buffer, toread);
-	if (r != toread) {
-		NSLog(@"[-] Error writing file\n");
-		return;
-	}
+    toread = (n > sizeof(buffer)) ? sizeof(buffer) : n;
+    r = read(fd, buffer, toread);
+    if (r != toread) {
+        NSLog(@"[-] Error reading file\n");
+        return;
+    }
+    n -= r;
+    
+    r = write(outfd, buffer, toread);
+    if (r != toread) {
+        NSLog(@"[-] Error writing file\n");
+        return;
+    }
 }
 ```
 
 最后，把已解密架构的 Mach-O header 中的 cryptid 字段置为 0， 表示未加密：
 
-```objectivec
+```c
 if (off_cryptid) {
-	uint32_t zero=0;
-	off_cryptid+=fileoffs;
-	NSLog(@"[+] Setting the LC_ENCRYPTION_INFO->cryptid to 0 at offset %x\n", off_cryptid);
-	if (lseek(outfd, off_cryptid, SEEK_SET) != off_cryptid || write(outfd, &zero, 4) != 4) {
-		NSLog(@"[-] Error writing cryptid value\n");
-	}
+    uint32_t zero=0;
+    off_cryptid+=fileoffs;
+    NSLog(@"[+] Setting the LC_ENCRYPTION_INFO->cryptid to 0 at offset %x\n", off_cryptid);
+    if (lseek(outfd, off_cryptid, SEEK_SET) != off_cryptid || write(outfd, &zero, 4) != 4) {
+        NSLog(@"[-] Error writing cryptid value\n");
+    }
 }
 ```
 
 关闭文件，程序退出：
 
-```
+```c
 NSLog(@"[+] Closing original file\n");
 close(fd);
 NSLog(@"[+] Closing dump file\n");
@@ -491,4 +493,3 @@ return;
 ```
 
 Enjoy.
-

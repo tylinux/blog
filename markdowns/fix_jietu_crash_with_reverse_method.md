@@ -48,7 +48,7 @@ libc++abi.dylib: terminating with uncaught exception of type NSException
 
 看日志，崩溃原因很简单，创建 `NSAttributedString` 的时候传入了 `nil`。看堆栈是在 `JietuFramework` 的 `-[JTCaptureSizeInfoSubView drawRect:] + 228` 中调用的。拖到 IDA 中，F5 一下：
 
-![-w859](https://i.loli.net/2020/12/07/HqslQXhJ6DLwCUV.jpg)
+![-w859](https://i.loli.net/2020/12/07/HqslQXhJ6DLwCUV.jpg ':size=600')
 
 崩溃时，伪代码中的 `v5` 为 nil，导致崩溃，而 `v5` 指向的则是 `JTCaptureSizeInfoSubView` 的 `sizeInfoStr` 属性。
 

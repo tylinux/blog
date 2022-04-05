@@ -7,14 +7,14 @@
 ## 下载镜像
 
 下载的时候要注意，群晖的 Docker 里推荐的 Jenkins 是个老版本，要安装新版本的才行，不然安装插件的时候可能会报版本过低的错误。
-![-w1057](https://i.loli.net/2018/12/30/5c289daf74ad9.jpg)
+![-w1057](https://i.loli.net/2018/12/30/5c289daf74ad9.jpg ':size=600')
 
 `latest` Tag 里的镜像是基于 Debian，相对比较大，1GB 左右。对容量有有求的可以使用 `alpine` tag，只有不到 300MB。
 
 ## 启动镜像
 
 这里就是出问题的地方了。为了方便安装，我把 `/var/jenkins_home` 这个目录映射到群晖里的某个目录下。比如这样：
-![-w651](https://i.loli.net/2018/12/30/5c289daf556ee.jpg)
+![-w651](https://i.loli.net/2018/12/30/5c289daf556ee.jpg ':size=600')
 
 然后在启动的时候，容器异常终止了，报错信息是：
 
@@ -41,7 +41,7 @@ Can not write to /var/jenkins_home/copy_reference_file.log. Wrong volume permiss
 1. 打开群晖系统的 SSH 登录功能：`Control Panel` -> `Terminal & SNMP` -> `Enable SSH Service`
     
 2. SSH 登录后执行 `cat /etc/passwd`，找到当前用户的 UID
-    ![-w562](https://i.loli.net/2018/12/30/5c289daf45272.jpg)
+    ![-w562](https://i.loli.net/2018/12/30/5c289daf45272.jpg ':size=600')
 
 3. 执行如下命令启动 Docker 实例
     

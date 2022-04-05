@@ -15,16 +15,16 @@
 
 默认情况下，`PlatformIO IDE` 没有安装 8051 的支持库，导致我们创建工程的时候，无法选择 8051 平台，所以先安装一下：
 
-![-w1286](https://i.loli.net/2019/09/27/ehD7QgiLZzpojXG.jpg)
+![-w1286](https://i.loli.net/2019/09/27/ehD7QgiLZzpojXG.jpg ':size=400')
 
 我使用的 宏晶 `STC89C52RC` 正在支持板子列表中~
 
-![-w1237](https://i.loli.net/2019/09/27/wvjBZoPAIhg2lTV.jpg)
+![-w1237](https://i.loli.net/2019/09/27/wvjBZoPAIhg2lTV.jpg ':size=400')
 
 ## Hello, LED
 
 新建工程：
-![-w601](https://i.loli.net/2019/09/27/KJT1mXB84rfCkbH.jpg)
+![-w601](https://i.loli.net/2019/09/27/KJT1mXB84rfCkbH.jpg ':size=400')
 
 新建文件 `led.c`，写入如下内容：
 
@@ -48,10 +48,10 @@ int main(int argc, char *argv[]) {
 | IO口定义 | #define LED P1_0 | sbit LED = P1^0 |
 | 中断函数 | void INT0_ISR() __interrupt 0 | void INT0_ISR() interrupt 0 |
 
-![-w675](https://i.loli.net/2019/09/27/DTlzRcEMbtd4gaO.jpg)
+![-w675](https://i.loli.net/2019/09/27/DTlzRcEMbtd4gaO.jpg ':size=400')
 
 编译烧录之后，顺利点亮 LED ~
-![-w858](https://i.loli.net/2019/09/27/FIreEH1QvKRbUm7.jpg)
+![-w858](https://i.loli.net/2019/09/27/FIreEH1QvKRbUm7.jpg ':size=400')
 
 ## 附录
 1. [STC89C52RC datasheet](http://www.stcmcudata.com/datasheet/STC89C52.pdf)

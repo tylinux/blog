@@ -16,7 +16,7 @@ Only open read write syscall are allowed to use.
 
 所以解题思路应该是用编写 shellcode，利用 `open`、`read`、`write` 这三个 syscall 读取 `/home/orw/flag` 中的内容。
 看反汇编内容也印证了这一猜想：在获取用户输入之后，直接把输入当作指令执行了
-![-w1097](https://i.loli.net/2019/02/13/5c6413f403283.jpg)
+![-w1097](https://i.loli.net/2019/02/13/5c6413f403283.jpg ':size=600')
 
 
 ## PWN

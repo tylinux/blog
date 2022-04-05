@@ -11,7 +11,7 @@
 ## 改装 USB 2.0 端口
 
 拆开主机，取下屏幕，映入眼帘的是一块硕大的电池，娇小的主板，和一个过时的 3G 网卡：
-![9E87CA78-B6C5-4C6D-B9FA-DFB84D2F458B_1_105_c](https://i.loli.net/2021/01/25/uLz3daRIrMo4DJk.jpg)
+![9E87CA78-B6C5-4C6D-B9FA-DFB84D2F458B_1_105_c](https://i.loli.net/2021/01/25/uLz3daRIrMo4DJk.jpg ':size=600')
 
 这里的网卡型号是[华为 MU736](http://download-c.huawei.com/download/downloadCenter?downloadId=14243)，按照文档所述，网卡接口是 M.2 Socket 2，具体来讲应该是 M.2 Socket 2 Key B，接口的主要功能包括：
 
@@ -19,19 +19,20 @@
 
 再依据 M.2 Socket 2 Key B 的 pinout，可以确定 USB 2.0 的 D+ 和 D- 的引脚位置。
 
-![-w668](https://i.loli.net/2021/01/25/9HJ1NGnWwV3za8Q.jpg)
+![](https://i.loli.net/2021/01/25/9HJ1NGnWwV3za8Q.jpg ':size=600')
 
 再通过测量网卡接口与主板上焊点的引脚对应关系，就可以找到 D+ 和 D- 对应的引脚焊点了，入下图：
 
-![-w791](https://i.loli.net/2021/01/25/6iNPvuI8LkK7lfO.jpg)
+![-w791](https://i.loli.net/2021/01/25/6iNPvuI8LkK7lfO.jpg ':size=600')
 
 确定了数据引脚，下面需要找个 +5V 和 GND 引脚。GND 好找，到处都是，主板上测了一圈没找到 +5V，所以就从电池线中接出了 +5V 和 GND。电池的电压 >7V 左右，用了个 5V 稳压模块，焊好后如下图：
 
-![2021-01-25 18.53.55](https://i.loli.net/2021/01/25/1va8h6KEgsdqNJb.jpg)
+![2021-01-25 18.53.55](https://i.loli.net/2021/01/25/1va8h6KEgsdqNJb.jpg ':size=600')
 
 Type-A 太大了，平板里放不下，所以接出一个 Type-C 的母口，在外头再转成 Type-A 的母口，亲测鼠标，U盘可用~
 
 ### 翻车
+
 在装回屏幕的过程中不小心把焊好的 D+ 和 D- 扯断了，然后带电焊接了一下，就再也没有反应了ಥ_ಥ。
 
 ## 改装直流充电（未验证！）
@@ -39,11 +40,11 @@ Type-A 太大了，平板里放不下，所以接出一个 Type-C 的母口，�
 这部分没有亲自试验，因为我买的是卖家已经改好充电的，我偷懒没有重新焊，只拆开看了下原理，整理如下，仅供参考。
 
 ### 原理图
-![-w478](https://i.loli.net/2021/01/25/MKidpLI9gm7Hhfs.jpg)
+
+![-w478](https://i.loli.net/2021/01/25/MKidpLI9gm7Hhfs.jpg ':size=600')
 
 RED, YELLOW, BROWN 代指下图中的红色，黄色，棕色线
 
-![71A7431D-3E6A-4568-B484-034CB8B526A7_1_105_c](https://i.loli.net/2021/01/25/irpwjBma67OfCFu.jpg)
+![71A7431D-3E6A-4568-B484-034CB8B526A7_1_105_c](https://i.loli.net/2021/01/25/irpwjBma67OfCFu.jpg ':size=600')
 
-![8B6F0E25-5C22-46C1-BA89-F900235887B4_1_105_c](https://i.loli.net/2021/01/25/QKHx78qmu35REf2.jpg)
-
+![8B6F0E25-5C22-46C1-BA89-F900235887B4_1_105_c](https://i.loli.net/2021/01/25/QKHx78qmu35REf2.jpg ':size=600')

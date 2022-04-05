@@ -111,7 +111,7 @@ exec gitlab-runner run --working-directory $HOME --config $HOME/.gitlab-runner/c
 
 测试结果如下图：
 
-![](https://i.loli.net/2021/05/19/Bt97ISAmCowvMxY.jpg)
+![](https://i.loli.net/2021/05/19/Bt97ISAmCowvMxY.jpg ':size=600')
 
 ## 参考链接
 1. [Termux 源使用帮助](http://mirrors.ustc.edu.cn/help/termux.html)
