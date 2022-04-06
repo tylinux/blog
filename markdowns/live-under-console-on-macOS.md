@@ -79,10 +79,10 @@ echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
   #
   #        Examples:
   #
-  #            	socks5	192.168.67.78	1080	lamer	secret
-  #		http	192.168.89.3	8080	justu	hidden
-  #	 	socks4	192.168.1.49	1080
-  #	        http	192.168.39.93	8080
+  #             socks5 192.168.67.78 1080 lamer secret
+  #  http 192.168.89.3 8080 justu hidden
+  #   socks4 192.168.1.49 1080
+  #         http 192.168.39.93 8080
   #
   #
   #       proxy types: http, socks4, socks5
@@ -92,7 +92,7 @@ echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
   # add proxy here ...
   # meanwile
   # defaults set to "tor"
-  #socks4 	127.0.0.1 9050
+  #socks4  127.0.0.1 9050
   socks5 127.0.0.1 1080
   ```
 
@@ -110,10 +110,10 @@ echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
     proxy="protocal://ip:port"
     # protocal可以是http、https、socks4/5
     ```
-    
+
   * git
 
-	git也支持通过将代理信息写入配置文件的方式设置代理：
+ git 也支持通过将代理信息写入配置文件的方式设置代理：
 
    ``` shell
    # git支持http、https、socks代理
@@ -125,8 +125,7 @@ echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
   
    ``` shell
    [http]
-	proxy="protocal://ip:port"
-	[https]
-	proxy="protocal://ip:port"
+ proxy="protocal://ip:port"
+ [https]
+ proxy="protocal://ip:port"
    ```
-

@@ -8,7 +8,7 @@
 
 ## 背景信息
 
-公司使用的是二进制化后的 pod，podspec 中使用 `vendored_libraries` 引入了 `libFlipper-RSocket.a`，然而在 `pod install` 的时候，出现了如上的错误，搜索一下，别人出现这个问题是两个不同的 pod 引用了相同的 .a 文件。但是我可以肯定我这里是没有这个问题的。
+公司使用的是二进制化后的 pod，podspec 中使用 `vendored_libraries` 引入了 `libFlipper-RSocket.a`，然而在 `pod install` 的时候，出现了如上的错误，搜索一下，别人出现这个问题是两个不同的 pod 引用了相同的 .a 文件。但是我可以肯定我这里是没有这个问题的。
 
 ## 排查
 

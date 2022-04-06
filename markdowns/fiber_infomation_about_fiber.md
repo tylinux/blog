@@ -3,19 +3,25 @@
 ## 种类
 
 #### 铠装光缆
+
 铠装光缆，顾名思义，是一种外部包裹了一层保护性“铠甲”的光缆，它的铠甲主要用来保护光纤线缆免受动物啃咬、湿气侵蚀或其他损害。
-![](https://i.loli.net/2021/11/05/uHBxjAKtoYPEJl7.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16358496268718.jpg ':size=600')
 
 #### 皮线光缆
 
 皮线光缆多为单芯、双芯结构，也可做成四芯结构，横截面呈8字型，加强件位于两圆中心，可采用金属或非金属结构，光纤位于8字型的几何中心。皮线光缆内光纤采用G.657小弯曲半径光纤，可以以20mm的弯曲半径敷设，适合在楼内以管道方式或布明线方式入户。
-![](https://i.loli.net/2021/11/05/B9Oe6mdEFLNjoRs.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16358498061087.jpg ':size=600')
 
 #### 跳线 vs 尾纤
+
 光纤跳线，又称光纤连接器，是指光缆两端都装上连接器插头，用来实现光路活动连接。一端装有插头则称为光纤尾纤。
-![](https://i.loli.net/2021/11/05/hzs3M9WDFLNirKT.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16358499261898.jpg ':size=600')
 
 #### 裸纤
+
 指没有外部防护层的裸露着的光纤
 
 ## 接口分类
@@ -25,42 +31,51 @@
 #### FC
 
 全名叫Ferrule Connector，最早应用于存储局域网络。外壳材质为金属，接口处有螺纹，和光模块连接时可以固定的很好。
-![](https://i.loli.net/2021/11/05/IKDlBtMJ92jO17W.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16358427390165.jpg ':size=600')
 
 #### ST
+
 材质为金属，接口处为卡扣式，常用于光纤配线架
-![](https://i.loli.net/2021/11/05/6EnPprFhTa5d4tg.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16358483417185.jpg ':size=600')
 
 #### LC
 
 材质为塑料，用于连接SFP光模块，接口可以卡在光模块上
-![](https://i.loli.net/2021/11/05/7gxr3MwjovytRqQ.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16358427746575.jpg ':size=600')
 
 #### SC
 
 材质为塑料，推拉式连接，接口可以卡在光模块上，常用于交换机
-![](https://i.loli.net/2021/11/05/xSGza829XKh1nc6.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16358427912519.jpg ':size=600')
 
 ## 熔接 && 冷接
-
 
 ## 光功率及其损耗
 
 ### 光功率
+
 光功率计测试用来确定光纤链路中的光功率损耗。光功率的计量单位是毫瓦（mW），更常用的光功率计量单位是dBm。下面介绍dBm单位与mW单位的换算关系。
 dBm单位是测得的功率与1mW基准功率的对数比，用公式表示为：
-![](https://i.loli.net/2021/11/05/CdGb6TLYqjDyREl.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16358504593400.jpg ':size=600')
 
 例如：
 1mW 的光功率根据公式就相当于0dBm的光功率，2mW的光功率就相当于3dBm的光功率；5mW的光功率就相当于7dBm的光功率；10mW的光功率就相当于10dBm的光功率；0.1mW的光功率就相当于-10dBm的光功率。
 
 ### 光损耗
+
 光功率损耗L（光损耗）（dB）常用来规范光纤衰减，其单位为dB，计算公式为：
-![](https://i.loli.net/2021/11/05/YDTe57ponkNOPdL.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16358506275214.jpg ':size=600')
 
 例如，已知光输出功率是0.1mW，光功率计连接到输出光缆的另一端时，光功率计测得的接收光功率是0.05mW，利用上述分贝功率损耗公式，可计算得出光纤损耗为 3dB。
 
 光损耗速记:
+
 * 3dB 的光损耗相当于 50% 的光功率损耗（lg2=0.3）
 * 7dB 的光损耗相当于 80% 的光功率损耗（lg5=0.7）
 * 10dB 的光损耗相当于 90%的光功率损耗（lg10=1）
@@ -74,6 +89,7 @@ dBm单位是测得的功率与1mW基准功率的对数比，用公式表示为�
 `SMALL FORM PLUGGABLE` 的缩写，SFP封装光模块的传输速率有155M、1.25G、2.5G等，接口类型主要以 LC 接口为主，一般用在SONET/SDH网络、百兆/千兆以太网以及其他低速传输应用。
 
 #### SFP+
+
 SFP+与SFP外观尺寸相同，SFP+封装光模块的传输速率有6G、8G、10G等，采用该封装类型的有6G/8GFC光模块、10G光模块、10G电口模块、10G DAC高速线缆以及10G AOC有源光缆。SFP+系列产品主要用于数据中心10G（10GBASE-SR）以太网链路中。
 
 #### SFP28

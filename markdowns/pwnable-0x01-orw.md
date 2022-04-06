@@ -16,8 +16,8 @@ Only open read write syscall are allowed to use.
 
 所以解题思路应该是用编写 shellcode，利用 `open`、`read`、`write` 这三个 syscall 读取 `/home/orw/flag` 中的内容。
 看反汇编内容也印证了这一猜想：在获取用户输入之后，直接把输入当作指令执行了
-![-w1097](https://i.loli.net/2019/02/13/5c6413f403283.jpg ':size=600')
 
+![-w1097](https://pan.xnure.com/OneDrive/Pics/blog/15500578031932.jpg ':size=600')
 
 ## PWN
 
@@ -57,7 +57,8 @@ mov eax, 0x4  ; write
 int 0x80      ; call
 ```
 
-##  附录1
+## 附录1
+
 鉴于 `pwntools` 中 `asm()` 方法不支持注释，而我又比较喜欢写注释，所以写了一个简单的 python 函数来处理汇编代码中的注释：
 
 ```python
@@ -75,6 +76,7 @@ def pure_asm(string):
 ```
 
 ## 附录2
+
 为了比较方便的把 `flag` 这样的字符串转换成 `0x67616c66` 这样的 16进制小端数值，也写了一个简单的 python 方法：
 
 ```python

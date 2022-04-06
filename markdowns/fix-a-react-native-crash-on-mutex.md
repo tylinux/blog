@@ -29,7 +29,7 @@ Application Specific Information:
 
 崩溃线程没有调用栈信息，类似下图：
 
-![](https://i.loli.net/2019/08/13/BUi4wILt6MKRN2j.jpg ':size=400')
+![](https://pan.xnure.com/OneDrive/Pics/blog/15656764730059.jpg ':size=600')
 
 经过观察，此类崩溃还有一个共同特点，就是主线程都有调用 `exit`，意味着程序正在退出，在退出过程中发生的崩溃。主线程调用栈如下：
 
@@ -58,7 +58,7 @@ Thread 0:
 
 一番搜索，发现 `RCTFont.mm` 有个类似的 Crash: [issue](https://github.com/facebook/react-native/issues/13588)，修复[PR](https://github.com/facebook/react-native/pull/22607/files)。修改内容如下图：
 
-![](https://i.loli.net/2019/08/13/SmBwNZrKGaPCA5J.jpg ':size=400')
+![](https://pan.xnure.com/OneDrive/Pics/blog/15656771242659.jpg ':size=600')
 
 就是把 `static std::mutex fontCacheMutex;` 改成了 `static std::mutex *fontCacheMutex`，普通的 `std::mutex` 变量改成了指针变量。区别在哪里呢？
 

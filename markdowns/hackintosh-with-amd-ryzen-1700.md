@@ -64,7 +64,7 @@
 
 之前买的 Apple 无线网卡+蓝牙需要连接主板上的9针 USB 接口，然而我怎么插也没有反应。进入 Windows 系统中是可以正常识别硬件的，那就说明是 macOS 的问题。一通瞎捣鼓，通过增加 USB 端口限制补丁解决了，就是在 Clover Configurator 中启用下边几项（应该是其中一项有左右，懒得测试了）
 
-![15572319696203](https://i.loli.net/2019/05/08/5cd23a7cd225f.jpg ':size=600')
+![15572319696203](https://pan.xnure.com/OneDrive/Pics/blog/16492220828440.jpg ':size=600')
 
 ### 无法打开 jpg 图片
 

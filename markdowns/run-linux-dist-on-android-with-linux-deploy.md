@@ -2,11 +2,9 @@
 
 在学习 ARM 汇编的时候，需要在本地搭建 arm 环境，当时所用的方法是使用 QEMU 模拟树莓派。然而由于 QEMU 对树莓派支持有限，性能堪忧。昨天翻出 2013 时候淘的一部 LG GPro，突然想到可以在 Android 设备上跑个 Linux 发行版来解决这个问题。
 
-<!--more-->
-
 （手机长这样：
 
-![-w540](https://i.loli.net/2018/01/22/5a65a5eecc4f8.jpg ':size=600')
+![-w540](https://pan.xnure.com/OneDrive/Pics/blog/15166061177468.jpg ':size=600')
 
 （感人的大黑边😭
 
@@ -18,23 +16,23 @@
 
 从 Google Play 下载安装 `Linux deploy` App，打开，长这样：
 
-![-w540](https://i.loli.net/2018/01/22/5a65a5ef56687.jpg ':size=600')
+![-w540](https://pan.xnure.com/OneDrive/Pics/blog/15166065123748.jpg ':size=600')
 
 点击左上角图标进入菜单，`Profiles` 里是我们创建的 Linux 实例，可以从这里切换已安装的不同发行版。`Repository` 则是 Linux Deploy 的源，默认是作者提供的 [http://hub.meefik.ru](http://hub.meefik.ru)（看来作者应该是战斗民族的）。
 
-![-w540](https://i.loli.net/2018/01/22/5a65a5ed94b47.jpg ':size=600')
+![-w540](https://pan.xnure.com/OneDrive/Pics/blog/15166082274324.jpg ':size=600')
 
 下图是默认源所包含的镜像列表：可以看到，只有 `debain` 的两个镜像是免费的，其他的要跳转到 Goole Play 进行付费才能导入。先以 `Debian Arm` 这个镜像为例，演示下使用方法。
 
-![-w540](https://i.loli.net/2018/01/22/5a65a5eec96d3.jpg ':size=600')
+![-w540](https://pan.xnure.com/OneDrive/Pics/blog/15166082570710.jpg ':size=600')
 
 在镜像列表对应条目上点击，选择 `Import`之后，会回到下图这样的界面，但此时，所用的 Profile 已经改变了（注意标题）
 
-![-w540](https://i.loli.net/2018/01/22/5a65a5ef56687.jpg ':size=600')
+![-w540](https://pan.xnure.com/OneDrive/Pics/blog/15166065123748.jpg ':size=600')
 
 点击右下角的菜单图标，进入镜像设置，如下图。在可以选择镜像的容器化方式（默认 chroot，可选 proot）、架构（默认 ARMv7，选择 ARM64 将直接使用对应的官方源进行安装，不使用作者的镜像）、镜像地址、安装路径、生成的本地镜像文件大小及格式（默认 ext2, 推荐 ext4）以及是否启用 SSH、VNC等服务。
 
-![-w540](https://i.loli.net/2018/01/22/5a65a5eddec06.jpg ':size=600')
+![-w540](https://pan.xnure.com/OneDrive/Pics/blog/15166083046621.jpg ':size=600')
 
 配置完成之后，返回主界面，点击右上角选项图标，选择安装，就开始生成本地镜像，下载远程镜像及安装附加软件包，安装完成之后，点击左下角启动既可即刻启动 Linux 发行版。
 
@@ -180,7 +178,8 @@ INCLUDE="bootstrap"
 ```
 
 看得出来，基本就是镜像配置那部分的内容了，包含了默认的磁盘镜像大小、格式、安装位置等信息，以及下载URL！看到这里
-![](https://i.loli.net/2018/01/22/5a65a5ee2a991.jpg ':size=600')
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/15166102086227.jpg ':size=600')
 
 是不是直接替换 URL 后边的镜像名字，就得到了各个镜像的安装包？试了一下下，别说，还真是。那么，镜像的全部下载地址就是：
 

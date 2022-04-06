@@ -243,7 +243,7 @@ lc = (struct load_command *)((unsigned char *)mh + sizeof(struct mach_header));
 
 `lc` 是一个指向 `struct load_command` 结构体的指针，如下图所示，在Mach-O 文件中，LoadCommands位于 Header 之后，所以这里以 Header 的大小作为偏移算出来 LoadCommand 的起始地址并赋值给 `lc`
 
-![](https://i.loli.net/2018/03/12/5aa678713bd28.jpg ':size=600')
+![](https://pan.xnure.com/OneDrive/Pics/blog/15208457989430.jpg ':size=600')
 
 之后的这段有点儿长，我们从外向里看：循环遍历每一个 LoadComand，如果存在 `LC_ENCRYPTION_INFO` 这个 Command，说明当前镜像是进行过加密的，执行解密操作。否则代表当前镜像未加密，无需解密，程序结束运行。
 
@@ -306,7 +306,7 @@ NSLog(@"[+] Detecting header type\n");
 fh = (struct fat_header *)buffer;
 ```
 
-![](https://i.loli.net/2018/03/12/5aa6787178d22.jpg ':size=600')
+![](https://pan.xnure.com/OneDrive/Pics/blog/15208482246400.jpg ':size=600')
 
 可以看到，FAT Binary 就是将多个 Mach-O 镜像拼到一起之后，在最前边加了个 Fat Header。
 可能你要问了，之前不是传进来一个 `(struct mach_header *)mh` 了嘛，这里为嘛还要自己读入一个呢？这里要注意了，传入的那个是 FAT Binary 中真正要读入到内存中执行的镜像的 Mach-O Header，而我们读入的，是整个 FAT Binary 的 FAT Header。FAT Header 定义如下：

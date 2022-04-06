@@ -2,9 +2,8 @@
 
 在通过 ``TheOS`` 完成 Tweak 的开发后，我们通常会执行 ``make package install`` 命令来将 Tweak 安装到越狱设备上。但如果需要将 Tweak 部署到大量设备上，安装和更新都是一个问题。这个时候，我们可以通过部署私有的 Cydia 源来完成 Tweak 的安装和更新。
 
-<!--more-->
-
 ## 依赖
+
 为了一次性把我们自己的 Tweak 以及依赖的其他库安装上，应该在我们的 Tweak 中写明依赖的库。具体修改的是 Tweak 工程中的 control 文件。control 文件内容如下：
 
 ```
@@ -24,6 +23,7 @@ Section: Tweaks
 补全依赖之后，就可以 ``make package`` 生成新的 deb 包了。
 
 ## 搭建
+
 deb 的源本质上就是需要特定结构的目录，基本的目录结构如下：
 
 ```
@@ -98,13 +98,13 @@ Name: 12306daemon
 ```
 
 ## 部署
+
 部署比较简单，只需要在服务器上安装&&启动 nginx，将上述目录放置在 nginx 根目录下既可。也可以放置在子目录中，但在 Cydia 中输入源地址时，要包含相应的子目录。
 
 ## 测试
-打开 Cydia ，在源编辑页面选择 ”添加“，输入服务器地：
-![](/images/15033805128579.jpg ':size=600')
 
+打开 Cydia ，在源编辑页面选择 ”添加“，输入服务器地：
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/15033793377193.jpg ':size=600')
 
 点击 “添加”后，会自动更新源缓存，下载Release 和 Packages.bz2 文件。更新完成后，即可 ”搜索“ 中搜索安装我们的 Tweak 了。 Enjoy it.
-
-

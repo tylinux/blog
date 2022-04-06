@@ -1,10 +1,9 @@
 # Android 设备上使用 Termux 安装运行 gitlab-runner
 
-
 ## 安装 Termux
 
-1. Termux: https://f-droid.org/packages/com.termux/
-2. Termux-boot: https://f-droid.org/packages/com.termux.boot/
+1. Termux: <https://f-droid.org/packages/com.termux/>
+2. Termux-boot: <https://f-droid.org/packages/com.termux.boot/>
 
 ## 换源
 
@@ -69,7 +68,7 @@ git clone https://gitlab.com/gitlab-org/gitlab-runner.git -b v13.11.0
 
 ### 3. 安装 go 依赖 && 编译
 
-```shell 
+```shell
 cd gitlab-runner
 go get 
 go build
@@ -97,7 +96,7 @@ chmod +x run
 chmod +x run
 ```
 
-在 `run` 中写入如下内容: 
+在 `run` 中写入如下内容:
 
 ```shell
 #!/bin/sh
@@ -111,9 +110,10 @@ exec gitlab-runner run --working-directory $HOME --config $HOME/.gitlab-runner/c
 
 测试结果如下图：
 
-![](https://i.loli.net/2021/05/19/Bt97ISAmCowvMxY.jpg ':size=600')
+![](https://pan.xnure.com/OneDrive/Pics/blog/16214386035933.jpg ':size=600')
 
 ## 参考链接
+
 1. [Termux 源使用帮助](http://mirrors.ustc.edu.cn/help/termux.html)
 2. [Termux-services](https://wiki.termux.com/wiki/Termux-services)
 3. [Termux:Boot](https://wiki.termux.com/wiki/Termux:Boot)

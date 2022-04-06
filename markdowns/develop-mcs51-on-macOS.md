@@ -9,22 +9,24 @@
 在 macOS 下没有 Keil C51 （有也不想用ಥ_ಥ），之前都是用的 `sdcc` 编译，`stcflash` 烧录。这会想起来之前在 VSCode 尝试过的 `PlatformIO IDE` 插件，搜了一下，果然支持，开搞。
 
 ### 安装 PlatformIO IDE
+
 很简单，在 VSCode 的应用市场里，搜索 `PlatformIO IDE` 安装即可。
 
 ### 安装 MCS-51 (8051) 支持
 
 默认情况下，`PlatformIO IDE` 没有安装 8051 的支持库，导致我们创建工程的时候，无法选择 8051 平台，所以先安装一下：
 
-![-w1286](https://i.loli.net/2019/09/27/ehD7QgiLZzpojXG.jpg ':size=400')
+![-w1286](https://pan.xnure.com/OneDrive/Pics/blog/15694765603224.jpg ':size=600')
 
 我使用的 宏晶 `STC89C52RC` 正在支持板子列表中~
 
-![-w1237](https://i.loli.net/2019/09/27/wvjBZoPAIhg2lTV.jpg ':size=400')
+![-w1237](https://pan.xnure.com/OneDrive/Pics/blog/15694769472959.jpg ':size=600')
 
 ## Hello, LED
 
 新建工程：
-![-w601](https://i.loli.net/2019/09/27/KJT1mXB84rfCkbH.jpg ':size=400')
+
+![-w601](https://pan.xnure.com/OneDrive/Pics/blog/15695128513580.jpg ':size=600')
 
 新建文件 `led.c`，写入如下内容：
 
@@ -44,14 +46,16 @@ int main(int argc, char *argv[]) {
 | | SSDC | keil |
 | --- | --- | --- |
 | 头文件 | 8051.h/8052.h | reg51.h/reg52.h |
-| IO口 | P1_0 | P1^0 |
-| IO口定义 | #define LED P1_0 | sbit LED = P1^0 |
+| IO口 | P1_0 | P1\^0 |
+| IO口定义 | #define LED P1_0 | sbit LED = P1\^0 |
 | 中断函数 | void INT0_ISR() __interrupt 0 | void INT0_ISR() interrupt 0 |
 
-![-w675](https://i.loli.net/2019/09/27/DTlzRcEMbtd4gaO.jpg ':size=400')
+![-w675](https://pan.xnure.com/OneDrive/Pics/blog/15695156105199.jpg ':size=600')
 
 编译烧录之后，顺利点亮 LED ~
-![-w858](https://i.loli.net/2019/09/27/FIreEH1QvKRbUm7.jpg ':size=400')
+
+![-w858](https://pan.xnure.com/OneDrive/Pics/blog/15695157614425.jpg ':size=600')
 
 ## 附录
+
 1. [STC89C52RC datasheet](http://www.stcmcudata.com/datasheet/STC89C52.pdf)

@@ -8,7 +8,7 @@ VirtualBox 看起来没有强依赖 `Hypervisor.framework`，因此在 AMD CPU �
 
 ## 准备工作
 
-1. 系统：macOS 10.15.1 
+1. 系统：macOS 10.15.1
 2. CPU：AMD Ryzen 3700X
 3. Xcode：Xcode 11.3
 4. 重启至 Recovery 模式，关闭 `SIP`
@@ -16,9 +16,11 @@ VirtualBox 看起来没有强依赖 `Hypervisor.framework`，因此在 AMD CPU �
 ## 编译
 
 ### 准备源码
+
 VirtualBox 的源码在其[下载页面](https://www.virtualbox.org/wiki/Downloads)即可看见。有两种，SVN 同步或者直接下载当前版本的 tar 包。没用过 SVN，我选择下载 tar 包，下载链接：[VirtualBox-6.1.0.tar.bz2](https://download.virtualbox.org/virtualbox/6.1.0/VirtualBox-6.1.0.tar.bz2)
 
 ### 安装编译依赖
+
 按照官方的编译指南，编译 VirtualBox 需要 `libidl openssl pkg-config qt` 这些第三方依赖，不过指南里用的是 `MacPort`，而我使用的是 `Homebrew`，所以，安装命令有所不同：
 
 ```shell
@@ -35,6 +37,7 @@ jabba alias default openjdk@1.13.0
 ```
 
 ### 安装 Mac OS X 10.9 SDK
+
 VirtualBox 的编译脚本是以 10.9 版本系统为目标 SDK 编写的，而且其使用的部分 IOKit 的方法已经在 10.11 版本中移除，使用新版本 SDK 无法编译通过，所以在开始编译之前需要安装一下 10.9 的 SDK。
 
 用的工具是 `XcodeLegacy`，一个开源的 shell 脚本，可以自动处理和安装低版本 Xcode 中携带的 SDK。
@@ -50,6 +53,7 @@ sudo ./XcodeLegacy.sh -osx109 install
 ```
 
 ### 编译
+
 按照编译指南，执行 `./configure --disable-hardening` 生成编译脚本，报错如下：
 
 ```text
@@ -240,6 +244,7 @@ QT5 提供的头文件，需要编译器支持 C++ 11 才能使用，编辑 `too
 `kmk`，编译成功。
 
 ## 运行
+
 编译结果在 `out/darwin.amd64/release/dist` 目录下，`VirtualBox.app` 是 App，`*.kext` 则是 VirtualBox 需要的内核扩展。执行 `loadall.sh` 加载内核扩展，报错如下：
 
 ```text
@@ -259,14 +264,16 @@ Disabling KextAudit: SIP is off
 
 1. 按照 [https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html) 所述，生成自签证书。
 2. 在 VirtualBox 源码目录下新建 `LocalConfig.kmk`，文件内容：
-    
+
     ```text
     VBOX_SIGNING_MODE = test
     VBOX_CERTIFICATE_SUBJECT_NAME = My Code Signing Cert
     ```
+
     其中，`VBOX_CERTIFICATE_SUBJECT_NAME` 就是你在生成自签证书是起的名字，重新 `kmk`，编译成功。
 
 ## 参考链接
+
 1. [Mac OS X build instructions](https://www.virtualbox.org/wiki/Mac%20OS%20X%20build%20instructions)
 2. [My experience building VirtualBox from Subversion on Mojave](https://forums.virtualbox.org/viewtopic.php?f=8&t=92989)
 3. [xcodelegacy](https://github.com/devernay/xcodelegacy)

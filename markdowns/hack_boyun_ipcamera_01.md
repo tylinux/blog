@@ -1,19 +1,20 @@
 # 也折腾博云物联辣鸡网络摄像头（上）
 
-
-> 相关资源文件可至：https://github.com/tylinux/HackBoyunIPCamera 下载
+> 相关资源文件可至：<https://github.com/tylinux/HackBoyunIPCamera> 下载
 
 前几天看了 [用垃圾网络摄像头构建的家庭直播系统](https://www.mydigit.cn/forum.php?mod=viewthread&tid=255164) 这篇帖子，也想试着玩儿玩儿网络摄像头，就买了帖子里提到的 38 俩包邮的博云物联摄像头。
 
 到手拆机：
 
-![IMG_0962](https://i.loli.net/2021/06/03/ghirFEwB4uPUs7p.jpg)
+![IMG_0962](https://pan.xnure.com/OneDrive/Pics/blog/IMG_0962.jpg ':size=600')
 
 海思 HI3518CV100 的主控芯片
-![IMG_0963](https://i.loli.net/2021/06/03/EIW3bNsHSCxKmuP.jpg)
+
+![IMG_0963](https://pan.xnure.com/OneDrive/Pics/blog/IMG_0963.jpg ':size=600')
 
 瑞昱 RTL8188ETV WiFi 模块
-![](https://i.loli.net/2021/06/03/1SRh3ouyecbUHv7.jpg)
+
+![](https://pan.xnure.com/OneDrive/Pics/blog/16226133621611.jpg ':size=600')
 
 开搞。
 
@@ -32,7 +33,7 @@
 
 TTL 测试点定义：
 
-![](https://i.loli.net/2021/06/03/PBSalgxLQeyr5Gh.jpg)
+![](https://pan.xnure.com/OneDrive/Pics/blog/16226139871724.jpg ':size=600')
 
 启动日志：
 
@@ -251,12 +252,11 @@ starting pid 977, tty '/dev/ttyS000': '/bin/login'
 | Sensor                  | OV9712 720P/30Hz image Sensor     |
 | WiFi Module             | Realtek RTL8188ETV 802.11 b/g/n   |
 
-
 ## OpenIPC
 
 搞定了 TTL ，就可以尝试刷成 OpenIPC 了，OpenIPC 官方 [网站](https://openipc.org/firmware/) 或者官方 [Github Repo](https://github.com/OpenIPC/chaos_calmer) 上下载 Hi3518CV100 的 u-boot、 kernel 等资源
 
-![](https://i.loli.net/2021/06/03/rn52GfSpLthcA8o.jpg)
+![](https://pan.xnure.com/OneDrive/Pics/blog/16226166032691.jpg ':size=600')
 
 按照 OpenIPC 文档上的步骤：
 
@@ -314,7 +314,7 @@ TTL 终端没有任何反应。。重试也不行。。
 
 感觉再拆下去，编程器转接板，flash，摄像头至少得坏一个，赶紧下单买了个编程器夹，顺便买了几个编程器座子，焊上之后长这样：
 
-![IMG_0980](https://i.loli.net/2021/06/03/4KsahMRTpmIY1gt.jpg)
+![IMG_0980](https://pan.xnure.com/OneDrive/Pics/blog/IMG_0980.jpg ':size=600')
 
 突然想到，有没有可能下载的 u-boot 本身是不适配这个板子的，因为 bootloader 是和硬件强相关的，可能 SoC 一样但是其他硬件不一样，导致 u-boot 起不来。
 
@@ -325,15 +325,16 @@ OpenIPC 提供的文件只有三个，没有原版 Web 资源文件那个 Squash
 
 ### 提取原版 u-boot
 
-```
+```shell
 # 从备份的镜像中提取前 256KB 内容到 u-boot.bin
 dd if=./hi3518cv100.bin of=u-boot.bin bs=1024 count=256
 ```
 
 ### 准备 Linux Kernle Image
+
 OpenIPC 提供的 uImage 文件大小为 1.3 MB，不足 1.75 MB，可以通过如下方式构造出来：
 
-```
+```shell
 # 创建一个 1.75 MB 的空文件
 dd if=/dev/zero of=./kernel.bin bs=1k count=1792
 
@@ -676,6 +677,6 @@ the community on a regular basis.
 
 ## 参考资料
 
-1. https://www.mydigit.cn/forum.php?mod=viewthread&tid=255164
-2. https://github.com/felix-001/hackboyun/blob/develop/doc/Boyun_FlashFirmware.md
-3. https://github.com/OpenIPC/chaos_calmer
+1. <https://www.mydigit.cn/forum.php?mod=viewthread&tid=255164>
+2. <https://github.com/felix-001/hackboyun/blob/develop/doc/Boyun_FlashFirmware.md>
+3. <https://github.com/OpenIPC/chaos_calmer>
