@@ -1,4 +1,4 @@
-baseURL = "https://www.tylinux.com/"
+baseURL = "https://tylinux.com/"
 languageCode = "zh_CN"
 title = "自留地"
 defaultContentLanguage = "zh-cn"     # en / zh-cn / ... (This field determines which i18n file to use)

@@ -39,7 +39,7 @@ mount -o rw,union,update /
 ![image.png](https://i.loli.net/2020/01/05/CZ1HO7eikWal8P2.png)
 
 ## 恢复
-参考 [使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1](https://www.tylinux.com/post/upgrade-from-iOS-11-1-2-to-iOS-11-3-1-with-blob/)
+参考 [使用 futurerestore 从 iOS 11.1.2 升级至 11.3.1](https://tylinux.com/outdate/upgrade-from-ios-11-1-2-to-ios-11-3-1-with-blob/)
 
 不过我在恢复的过程中碰到点儿问题。。。`futurerestore` 的 `180` 版本，使用 iOS 13.3 的 baseband 和 SEP 文件，在最后恢复基带的时候报错，信息如下：
 

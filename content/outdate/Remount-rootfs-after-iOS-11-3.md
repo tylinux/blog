@@ -8,7 +8,7 @@ categories: ["逆向研究"]
 > 原文链接：https://media.weibo.cn/article?id=2309404245794218721506
 > 作者：Xiaolong Bai and Min (Spark) Zheng @ Alibaba Security Lab
 > 译者：tylinux
-> 博客地址: [https://www.tylinux.com](https://www.tylinux.com)
+> 博客地址: [https://tylinux.com](https://tylinux.com)
 
 <!--more-->
 
