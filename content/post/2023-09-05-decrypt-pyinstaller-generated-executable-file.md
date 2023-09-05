@@ -1,7 +1,7 @@
 ---
 title: 解包 PyInstaller 生成的可执行文件
-tags: None
-category: None
+tags: []
+category: []
 date: 2023-09-05
 ---
 
